@@ -1,0 +1,316 @@
+---
+import Base from '../../layouts/Base.astro';
+import Illustration from '../../components/Illustration.astro';
+import ListingCard from '../../components/ListingCard.astro';
+import Icon from '../../components/Icon.astro';
+import { listings, FEATURE_LABELS, FAMILY_LABELS } from '../../data/listings';
+import districts from '../../data/districts.json';
+import { site } from '../../data/site';
+import { formatPrice, formatEur, placeLabel, pricePerSqm, acquisitionCosts, roomsLabel } from '../../lib/format';
+
+export function getStaticPaths() { return listings.map((l) => ({ params: { ref: l.ref }, props: { listing: l } })); }
+const { listing: l } = Astro.props;
+const seed = parseInt(l.ref.replace(/\D/g, ''), 10) || 1;
+const district = districts.find((d) => d.slug === l.district);
+const isLoc = l.transaction === 'location';
+const costs = !isLoc && l.price ? acquisitionCosts(l.price, site.fees) : null;
+const deposit = isLoc && l.price ? l.price * 3 : null;
+const rentalFee = isLoc && l.price ? l.price * 12 * 0.10 * 1.2 : null;
+const similar = listings.filter((s) => s.id !== l.id && s.transaction === l.transaction && s.family === l.family && (l.price == null || s.price == null || Math.abs(s.price - l.price) / l.price <= 0.4)).sort((a, b) => (a.district === l.district ? -1 : 0) - (b.district === l.district ? -1 : 0)).slice(0, 3);
+const published = new Date(l.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+const crumbFam = FAMILY_LABELS[l.family];
+const schema = {
+  '@context': 'https://schema.org', '@type': 'RealEstateListing', name: l.title, description: l.description, datePosted: l.date, url: `/bien/${l.ref}/`,
+  offers: { '@type': 'Offer', price: l.price ?? undefined, priceCurrency: 'EUR', availability: 'https://schema.org/InStock', businessFunction: isLoc ? 'http://purl.org/goodrelations/v1#LeaseOut' : 'http://purl.org/goodrelations/v1#Sell' },
+  about: { '@type': l.family === 'villa' ? 'House' : l.family === 'appartement' ? 'Apartment' : 'Accommodation', floorSize: { '@type': 'QuantitativeValue', value: l.surface, unitCode: 'MTK' }, numberOfRooms: l.rooms, address: { '@type': 'PostalAddress', addressLocality: l.city, addressCountry: l.country } },
+};
+const galleryKinds = [l.illustration, 'interior', l.seaView ? 'sea-terrace' : 'facade', l.family === 'bureau-commerce' ? 'office' : 'hills', l.parkings ? 'parking' : 'port'];
+---
+<Base title={`${l.title} — ${l.ref}`} description={`${l.type} ${roomsLabel(l)} de ${l.surface} m² ${isLoc ? 'à louer' : 'à vendre'} à ${placeLabel(l)} — ${formatPrice(l)}. ${l.highlights.join(' · ')}.`} schema={schema} bodyClass="page-listing">
+  <article class="listing">
+    <div class="container">
+      <nav class="crumbs small" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href={isLoc ? '/louer/' : '/acheter/'}>{isLoc ? 'Louer' : 'Acheter'}</a> › <a href={`${isLoc ? '/louer/' : '/acheter/'}?famille=${l.family}`}>{crumbFam}</a> › <span aria-current="page">{l.ref}</span></nav>
+
+      <!-- Galerie -->
+      <div class="gallery" data-gallery>
+        <ul class="gallery-grid" role="list">
+          {galleryKinds.map((k, i) => <li class={i === 0 ? 'main' : ''}><button type="button" data-lightbox={i} aria-label={`Agrandir le visuel ${i + 1}`}><Illustration kind={k} seed={seed + i * 7} title={`${l.title} — visuel illustratif ${i + 1}`} /></button></li>)}
+        </ul>
+        <div class="gallery-tools"><span class="badge badge-dark">Visuels illustratifs — photos sur demande</span><button type="button" class="btn btn-light btn-sm" data-lightbox="0"><Icon name="grid" size={16} /> Voir les {galleryKinds.length} visuels</button></div>
+        <div class="gallery-mobile-tools"><button type="button" class="fav" data-fav={l.ref} aria-pressed="false" aria-label="Ajouter aux favoris"><Icon name="heart" size={20} /></button><button type="button" class="fav" data-share aria-label="Partager"><Icon name="share" size={20} /></button></div>
+      </div>
+
+      <div class="listing-layout">
+        <div class="listing-main">
+          <header class="listing-head" data-listing-head>
+            <p class="cluster">{l.featured && <span class="badge">À la une</span>}{l.isNew && <span class="badge badge-primary">Nouveau</span>}{isLoc && <span class="badge badge-primary">Location</span>}{l.features.includes('loue') && <span class="badge badge-success">Loué · investisseur</span>}</p>
+            <h1>{l.title}</h1>
+            <p class="meta"><Icon name="pin" size={16} /> {placeLabel(l)} · Réf. {l.ref} · Publié le {published}</p>
+            <p class="price">{formatPrice(l)}</p>
+            <p class="small muted">{isLoc ? (l.charges ? `Charges ${formatEur(l.charges)}/mois en sus` : 'Charges incluses') : l.price ? `Honoraires d'agence inclus · ${pricePerSqm(l)}` : 'Frais d\'acquisition : environ 9,6 % du prix (6 % + 3 % + TVA). Demandez le détail.'}</p>
+            <ul class="keyspecs" role="list">
+              <li><Icon name="area" size={20} /><strong>{l.surface} m²</strong><span>Surface</span></li>
+              {l.terrace && <li><Icon name="wave" size={20} /><strong>{l.terrace} m²</strong><span>Extérieur</span></li>}
+              {l.family !== 'parking-cave' && <li><Icon name="door" size={20} /><strong>{l.rooms}</strong><span>Pièce{l.rooms > 1 ? 's' : ''}</span></li>}
+              {l.bedrooms > 0 && <li><Icon name="bed" size={20} /><strong>{l.bedrooms}</strong><span>Chambre{l.bedrooms > 1 ? 's' : ''}</span></li>}
+              {l.bathrooms > 0 && <li><Icon name="bath" size={20} /><strong>{l.bathrooms}</strong><span>Salle{l.bathrooms > 1 ? 's' : ''} de bain</span></li>}
+              {l.parkings > 0 && <li><Icon name="car" size={20} /><strong>{l.parkings}</strong><span>Parking{l.parkings > 1 ? 's' : ''}</span></li>}
+              {l.floor && <li><Icon name="building" size={20} /><strong>{l.floor}</strong><span>Étage</span></li>}
+            </ul>
+          </header>
+
+          <section class="block" aria-labelledby="desc-title">
+            <h2 id="desc-title">Le bien</h2>
+            <p class="prose desc">{l.description}</p>
+            <h3 class="mt-5">Points forts</h3>
+            <ul class="highlights" role="list">{l.highlights.map((h) => <li><Icon name="check" size={16} /> {h}</li>)}</ul>
+          </section>
+
+          <section class="block" aria-labelledby="eq-title">
+            <h2 id="eq-title">Équipements et services</h2>
+            <ul class="equip" role="list">{l.features.filter((f) => f !== 'loue').map((f) => <li><Icon name="check" size={16} /> {FEATURE_LABELS[f] ?? f}</li>)}</ul>
+          </section>
+
+          <section class="block" aria-labelledby="district-title">
+            <h2 id="district-title">Le quartier : {district?.name ?? placeLabel(l)}</h2>
+            <div class="district-grid">
+              <div class="stack">
+                <p class="muted">{district?.description ?? `Bien situé à ${placeLabel(l)}, à proximité de Monaco et de ses services.`}</p>
+                {district && <ul class="travel" role="list">
+                  <li><Icon name="walk" size={18} /> Casino de Monte-Carlo : {district.walk.casino} min à pied</li>
+                  <li><Icon name="train" size={18} /> Gare de Monaco : {district.walk.gare} min</li>
+                  <li><Icon name="wave" size={18} /> Plage du Larvotto : {district.walk.plage} min</li>
+                  <li><Icon name="plane" size={18} /> Aéroport de Nice : 7 min en hélicoptère · 45 min en voiture</li>
+                </ul>}
+                {district && <a href={`/monaco/quartiers/${district.slug}/`} class="arrow">Découvrir {district.name}</a>}
+              </div>
+              <div class="map-slot card" data-lat="43.74" data-lng="7.42" aria-label={`Localisation approximative dans ${district?.name ?? l.city}`}>
+                <svg viewBox="0 0 400 260" aria-hidden="true">
+                  <rect width="400" height="260" fill="var(--ill-sea-1)" rx="12"/>
+                  <path d="M0 80 L120 40 L240 70 L400 30 V260 H0Z" fill="var(--ill-stone-2)"/>
+                  <g stroke="var(--ill-light)" stroke-width="2" opacity=".6" fill="none"><path d="M40 120 L360 100M60 190 L380 170M150 60 L170 240M260 50 L280 230"/></g>
+                  <circle cx="210" cy="150" r="60" fill="var(--primary)" opacity=".18"/><circle cx="210" cy="150" r="60" fill="none" stroke="var(--primary)" stroke-width="2" stroke-dasharray="6 4"/>
+                  <circle cx="210" cy="150" r="8" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+                </svg>
+                <p class="small muted map-note">Localisation approximative (rayon 200 m). <button type="button" class="link-btn" data-map-load>Afficher la carte interactive</button></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="block hide-desktop" aria-labelledby="cost-title-m">
+            <h2 id="cost-title-m">{isLoc ? 'Budget mensuel' : 'Budget total estimé'}</h2>
+            <div class="card card-pad" data-cost-mobile></div>
+          </section>
+
+          <section class="block" aria-labelledby="similar-title">
+            <div class="section-head row" style="margin-bottom:var(--space-5)"><div><h2 id="similar-title">Vous aimerez aussi</h2></div><a href={`${isLoc ? '/louer/' : '/acheter/'}?famille=${l.family}`} class="arrow">Voir tous les {crumbFam.toLowerCase()}</a></div>
+            <div class="card-grid similar">{similar.map((s) => <ListingCard listing={s} />)}</div>
+          </section>
+        </div>
+
+        <aside class="listing-side">
+          <div class="side-sticky">
+            {costs && (
+              <div class="card card-pad cost" data-cost>
+                <h3>Budget total estimé</h3>
+                <label class="field"><span class="label">Et si je proposais :</span><div class="affix"><input type="number" class="input" data-offer value={l.price} step="10000" min="1" inputmode="numeric" /><span>€</span></div></label>
+                <dl class="kv" aria-live="polite">
+                  <dt>Prix de vente</dt><dd data-c="price">{formatEur(l.price!)}</dd>
+                  <dt>Frais d'enregistrement et de notaire (6 %)</dt><dd data-c="notary">{formatEur(costs.notary)}</dd>
+                  <dt>Honoraires d'agence (3 %)</dt><dd data-c="agencyHT">{formatEur(costs.agencyHT)}</dd>
+                  <dt>TVA sur honoraires (20 %)</dt><dd data-c="agencyVAT">{formatEur(costs.agencyVAT)}</dd>
+                  <dt class="total">Total acquisition</dt><dd class="total" data-c="total">{formatEur(costs.total)}</dd>
+                  <dt>Acompte à l'offre (10 %)</dt><dd data-c="deposit">{formatEur(costs.deposit)}</dd>
+                </dl>
+                <p class="small muted">Barème indicatif de la Chambre Immobilière Monégasque. Droits d'enregistrement susceptibles de varier selon la structure d'acquisition.</p>
+                <a href="/services/#achat" class="arrow small">Comment se déroule un achat à Monaco ?</a>
+              </div>
+            )}
+            {isLoc && l.price && (
+              <div class="card card-pad cost" data-cost>
+                <h3>Budget mensuel</h3>
+                <dl class="kv">
+                  <dt>Loyer</dt><dd>{formatEur(l.price)}</dd>
+                  <dt>Charges</dt><dd>{formatEur(l.charges ?? 0)}</dd>
+                  <dt class="total">Total mensuel</dt><dd class="total">{formatEur(l.price + (l.charges ?? 0))}</dd>
+                </dl>
+                <h4 class="mt-4">À l'entrée</h4>
+                <dl class="kv">
+                  <dt>Dépôt de garantie (3 mois)</dt><dd>{formatEur(deposit!)}</dd>
+                  <dt>Honoraires d'agence (10 % du loyer annuel + TVA)</dt><dd>{formatEur(rentalFee!)}</dd>
+                  <dt class="total">Total à prévoir</dt><dd class="total">{formatEur(deposit! + rentalFee! + l.price + (l.charges ?? 0))}</dd>
+                </dl>
+                <p class="small muted">Montants indicatifs, précisés dans le bail.</p>
+              </div>
+            )}
+            <div class="card card-pad contact-card" id="visite">
+              <h3>Demander une visite ou plus d'informations</h3>
+              <form class="stack" data-lead-form novalidate>
+                <div class="field"><label for="c-name">Nom complet</label><input id="c-name" name="name" class="input" autocomplete="name" required /></div>
+                <div class="field"><label for="c-email">E-mail</label><input id="c-email" name="email" type="email" class="input" autocomplete="email" required /></div>
+                <div class="field"><label for="c-phone">Téléphone <span class="muted">(facultatif)</span></label><input id="c-phone" name="phone" type="tel" class="input" autocomplete="tel" placeholder="+377" /><span class="hint">Nous pouvons aussi vous écrire sur WhatsApp.</span></div>
+                <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" class="textarea" rows="3">{`Je souhaite ${isLoc ? 'visiter' : 'visiter'} le bien ${l.ref}.`}</textarea></div>
+                <label class="checkbox"><input type="checkbox" name="consent" required /><span>J'accepte que Groupe SMIR me contacte au sujet de ce bien. Données conservées 3 ans, jamais cédées. <a href="/mentions-legales/#confidentialite">Politique de confidentialité</a>.</span></label>
+                <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+                <p class="error-msg" data-err hidden></p>
+                <button type="submit" class="btn btn-primary btn-block">Envoyer ma demande</button>
+                <p class="small muted text-center">Réponse sous 24 h ouvrées · ou appelez le <a href={site.phone.href}>{site.phone.display}</a></p>
+                <p class="notice notice-success" data-ok hidden>Merci, votre demande concernant le bien {l.ref} est bien reçue. Un conseiller vous répond sous 24 h ouvrées.</p>
+              </form>
+              <div class="advisor">
+                <span class="avatar" aria-hidden="true">SE</span>
+                <div><strong>Service Transactions</strong><br /><span class="small muted">Conseiller · FR · EN · IT</span></div>
+                <a href={site.phone.href} class="btn btn-ghost btn-sm">Appeler</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Barre sticky (desktop sous la nav / mobile en bas) -->
+    <div class="sticky-bar" data-sticky-bar hidden>
+      <div class="container sticky-inner">
+        <div class="sb-left"><strong class="sb-title">{l.title}</strong><span class="small muted hide-mobile">{placeLabel(l)}</span><span class="sb-price">{formatPrice(l)}</span></div>
+        <div class="sb-right">
+          <a href="#visite" class="btn btn-primary">Demander une visite</a>
+          <a href={`${site.whatsapp.href}?text=${encodeURIComponent(`Bonjour, je suis intéressé(e) par le bien ${l.ref} (${l.title}).`)}`} class="btn-icon wa" aria-label="WhatsApp" rel="noopener"><Icon name="whatsapp" /></a>
+          <button type="button" class="btn-icon hide-mobile" data-fav={l.ref} aria-pressed="false" aria-label="Ajouter aux favoris"><Icon name="heart" /></button>
+          <button type="button" class="btn-icon hide-mobile" data-share aria-label="Partager"><Icon name="share" /></button>
+        </div>
+      </div>
+    </div>
+
+    <dialog class="lightbox" data-lightbox-dialog aria-label="Galerie">
+      <button type="button" class="btn-icon lb-close" data-lb-close aria-label="Fermer"><Icon name="close" /></button>
+      <button type="button" class="btn-icon lb-prev" data-lb-prev aria-label="Précédent"><Icon name="arrowLeft" /></button>
+      <div class="lb-stage" data-lb-stage>{galleryKinds.map((k, i) => <div class="lb-item" data-i={i}><Illustration kind={k} seed={seed + i * 7} title={`Visuel ${i + 1}`} /></div>)}</div>
+      <button type="button" class="btn-icon lb-next" data-lb-next aria-label="Suivant"><Icon name="arrowRight" /></button>
+      <p class="lb-count" data-lb-count>1 / {galleryKinds.length}</p>
+    </dialog>
+  </article>
+</Base>
+
+<style>
+  .listing { padding-block: var(--space-4) var(--section-y); }
+  .crumbs { color: var(--text-2); margin-bottom: var(--space-4); }
+  .crumbs a { color: var(--text-2); }
+  .gallery { position: relative; border-radius: var(--radius-lg); overflow: clip; margin-bottom: var(--space-6); }
+  .gallery-grid { display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); block-size: 520px; }
+  .gallery-grid li.main { grid-area: 1 / 1 / 3 / 3; }
+  .gallery-grid button { display: block; inline-size: 100%; block-size: 100%; position: relative; overflow: hidden; border-radius: var(--radius-sm); background: var(--bg-2); }
+  .gallery-grid button :global(svg) { position: absolute; inset: 0; transition: transform var(--dur-slow) var(--ease-out); }
+  @media (hover: hover) { .gallery-grid button:hover :global(svg) { transform: scale(1.03); } }
+  @media (max-width: 1023px) { .gallery-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; block-size: auto; gap: 8px; scrollbar-width: none; } .gallery-grid li { flex: 0 0 100%; aspect-ratio: 4 / 3; scroll-snap-align: start; } }
+  .gallery-tools { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; pointer-events: none; }
+  .gallery-tools > * { pointer-events: auto; }
+  .gallery-mobile-tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+  @media (min-width: 1024px) { .gallery-mobile-tools { display: none; } }
+  .fav { inline-size: 40px; block-size: 40px; border-radius: 50%; background: color-mix(in srgb, var(--surface) 90%, transparent); color: var(--text); display: grid; place-items: center; }
+  .fav[aria-pressed="true"] { color: var(--error); } .fav[aria-pressed="true"] svg { fill: currentColor; }
+  .listing-layout { display: grid; gap: var(--space-7); }
+  @media (min-width: 1024px) { .listing-layout { grid-template-columns: 8fr 4fr; align-items: start; } }
+  .listing-main { display: grid; gap: var(--space-7); min-inline-size: 0; }
+  .listing-head { display: grid; gap: var(--space-3); }
+  .listing-head h1 { max-inline-size: 24ch; }
+  .meta { display: flex; align-items: center; gap: 6px; color: var(--text-2); flex-wrap: wrap; }
+  .meta svg { color: var(--accent); }
+  .listing-head .price { font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); }
+  .keyspecs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; background: var(--bg-2); border-radius: var(--radius-md); padding: 16px; margin-top: var(--space-2); }
+  .keyspecs li { display: grid; gap: 2px; justify-items: start; }
+  .keyspecs svg { color: var(--accent); }
+  .keyspecs strong { font-size: 1rem; } .keyspecs span { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; }
+  .block { display: grid; gap: var(--space-4); }
+  .desc { font-size: var(--fs-lead); line-height: 1.6; }
+  .highlights, .equip { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .highlights li, .equip li { display: flex; gap: 8px; align-items: center; }
+  .highlights svg, .equip svg { color: var(--accent); flex: none; }
+  .equip li { min-block-size: 44px; padding: 0 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: var(--fs-small); }
+  .district-grid { display: grid; gap: var(--space-5); }
+  @media (min-width: 768px) { .district-grid { grid-template-columns: 1fr 1fr; } }
+  .travel { display: grid; gap: 8px; font-size: var(--fs-small); }
+  .travel li { display: flex; gap: 8px; align-items: center; } .travel svg { color: var(--accent); }
+  .map-slot { padding: 8px; display: grid; gap: 6px; }
+  .map-slot svg { inline-size: 100%; block-size: auto; border-radius: var(--radius-sm); }
+  .map-note { padding: 0 6px 4px; }
+  .link-btn { color: var(--primary); text-decoration: underline; }
+  .side-sticky { display: grid; gap: var(--space-4); }
+  @media (min-width: 1024px) { .side-sticky { position: sticky; top: calc(var(--nav-h) + 80px); } }
+  .cost h3, .contact-card h3 { font-family: var(--font-body); font-size: 1.125rem; font-weight: 600; margin-bottom: var(--space-3); }
+  .cost .kv { margin-block: var(--space-3); }
+  .affix { position: relative; } .affix span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-2); font-size: var(--fs-small); } .affix .input { padding-right: 36px; }
+  @media (max-width: 1023px) { .listing-side .cost { display: none; } }
+  .advisor { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+  .avatar { inline-size: 48px; block-size: 48px; border-radius: 50%; background: var(--primary-tint); color: var(--primary); font-weight: 700; display: grid; place-items: center; }
+  .similar { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+  /* Sticky bar */
+  .sticky-bar { position: fixed; inset-inline: 0; z-index: var(--z-sticky); background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--border); bottom: 0; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); animation: slideUp var(--dur-base) var(--ease-out); }
+  @media (min-width: 1024px) { .sticky-bar { top: var(--nav-h); bottom: auto; border-top: 0; border-bottom: 1px solid var(--border); padding: 8px 0; animation: slideDown var(--dur-base) var(--ease-out); } }
+  @keyframes slideUp { from { transform: translateY(100%); } } @keyframes slideDown { from { transform: translateY(-100%); } }
+  .sticky-inner { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .sb-left { display: grid; gap: 0; min-inline-size: 0; }
+  .sb-title { font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-inline-size: 48ch; }
+  @media (max-width: 1023px) { .sb-title { display: none; } }
+  .sb-price { font-weight: 700; font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+  @media (min-width: 1024px) { .sb-left { grid-template-columns: auto auto auto; gap: 16px; align-items: center; } }
+  .sb-right { display: flex; gap: 6px; align-items: center; }
+  .wa { background: var(--success-tint); color: var(--success); }
+  body.page-listing :global(.bottombar) { display: none; }
+  /* Lightbox */
+  .lightbox { border: 0; padding: 0; inline-size: 100vw; block-size: 100dvh; max-inline-size: none; max-block-size: none; background: rgb(18 19 17 / 0.96); color: #fff; }
+  .lightbox::backdrop { background: transparent; }
+  .lb-stage { position: absolute; inset: 64px 72px; display: grid; place-items: center; }
+  @media (max-width: 767px) { .lb-stage { inset: 64px 8px; } }
+  .lb-item { position: absolute; inset: 0; display: none; } .lb-item.is-active { display: block; }
+  .lb-item :global(svg) { inline-size: 100%; block-size: 100%; object-fit: contain; border-radius: var(--radius-md); }
+  .lb-close { position: absolute; top: 12px; right: 12px; color: #fff; } .lb-prev, .lb-next { position: absolute; top: 50%; transform: translateY(-50%); color: #fff; inline-size: 48px; block-size: 48px; background: rgb(255 255 255 / 0.1); }
+  .lb-prev { left: 12px; } .lb-next { right: 12px; }
+  .lb-count { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: var(--fs-small); color: #fff; }
+</style>
+
+<script>
+  import { acquisitionCosts } from '../../lib/format';
+  const fmt = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  // Calculateur de frais
+  const cost = document.querySelector('[data-cost]') as HTMLElement | null;
+  const offer = cost?.querySelector('[data-offer]') as HTMLInputElement | null;
+  offer?.addEventListener('input', () => {
+    const p = Number(offer.value) || 0; const c = acquisitionCosts(p, { notary: 0.06, agency: 0.03, vat: 0.2, deposit: 0.1 });
+    const set = (k: string, v: number) => { const el = cost!.querySelector(`[data-c="${k}"]`); if (el) el.textContent = fmt(v); };
+    set('price', p); set('notary', c.notary); set('agencyHT', c.agencyHT); set('agencyVAT', c.agencyVAT); set('total', c.total); set('deposit', c.deposit);
+  });
+  // Copie mobile du calculateur
+  const m = document.querySelector('[data-cost-mobile]'); if (m && cost) { m.innerHTML = cost.innerHTML; m.querySelector('h3')?.remove(); }
+  // Barre sticky
+  const head = document.querySelector('[data-listing-head]')!; const bar = document.querySelector('[data-sticky-bar]') as HTMLElement;
+  new IntersectionObserver(([e]) => { bar.hidden = e.isIntersecting; }, { threshold: 0 }).observe(head);
+  // Partage
+  document.querySelectorAll('[data-share]').forEach((b) => b.addEventListener('click', async () => {
+    const data = { title: document.title, text: (document.querySelector('.listing-head h1') as HTMLElement).textContent!, url: location.href };
+    if (navigator.share) { try { await navigator.share(data); } catch {} }
+    else { await navigator.clipboard.writeText(location.href); (window as any).toast?.('Lien copié'); }
+  }));
+  // Formulaire de contact
+  const form = document.querySelector('[data-lead-form]') as HTMLFormElement;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault(); const fd = new FormData(form); const err = form.querySelector('[data-err]') as HTMLElement;
+    if (fd.get('website')) return;
+    if (!String(fd.get('name')).trim()) { err.textContent = 'Veuillez indiquer votre nom.'; err.hidden = false; (form.elements.namedItem('name') as HTMLElement).focus(); return; }
+    if (!/.+@.+\..+/.test(String(fd.get('email')))) { err.textContent = 'Cette adresse e-mail semble incorrecte.'; err.hidden = false; (form.elements.namedItem('email') as HTMLElement).focus(); return; }
+    if (!fd.get('consent')) { err.textContent = 'Veuillez accepter la politique de confidentialité pour continuer.'; err.hidden = false; return; }
+    err.hidden = true;
+    document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'fiche', data: Object.fromEntries(fd) } }));
+    (form.querySelector('[data-ok]') as HTMLElement).hidden = false; form.querySelector('button[type=submit]')!.setAttribute('disabled', '');
+  });
+  // Carte interactive (point d'extension)
+  document.querySelector('[data-map-load]')?.addEventListener('click', () => (window as any).toast?.('Carte interactive : à brancher (Leaflet / MapLibre) — voir README'));
+  // Lightbox
+  const dlg = document.querySelector('[data-lightbox-dialog]') as HTMLDialogElement; const items = Array.from(dlg.querySelectorAll<HTMLElement>('.lb-item')); let cur = 0;
+  const show = (i: number) => { cur = (i + items.length) % items.length; items.forEach((it, k) => it.classList.toggle('is-active', k === cur)); (dlg.querySelector('[data-lb-count]') as HTMLElement).textContent = `${cur + 1} / ${items.length}`; };
+  document.querySelectorAll<HTMLElement>('[data-lightbox]').forEach((b) => b.addEventListener('click', () => { show(Number(b.dataset.lightbox)); dlg.showModal(); }));
+  dlg.querySelector('[data-lb-close]')!.addEventListener('click', () => dlg.close());
+  dlg.querySelector('[data-lb-prev]')!.addEventListener('click', () => show(cur - 1)); dlg.querySelector('[data-lb-next]')!.addEventListener('click', () => show(cur + 1));
+  dlg.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') show(cur - 1); if (e.key === 'ArrowRight') show(cur + 1); });
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  let x0 = 0; dlg.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true }); dlg.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(cur + (dx < 0 ? 1 : -1)); });
+</script>

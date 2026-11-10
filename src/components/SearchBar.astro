@@ -1,0 +1,89 @@
+---
+/** Barre de recherche rapide (hero) : Acheter/Louer · Type · Quartier · Budget → /acheter?… ou /louer?… */
+import districts from '../data/districts.json';
+import { FAMILY_LABELS } from '../data/listings';
+import Icon from './Icon.astro';
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+---
+<form class={`search-bar ${compact ? 'is-compact' : ''}`} action="/acheter/" method="get" data-search-bar role="search" aria-label="Recherche rapide de biens">
+  <div class="seg sb-seg" role="radiogroup" aria-label="Transaction">
+    <label><input type="radio" name="t" value="acheter" checked /><span>Acheter</span></label>
+    <label><input type="radio" name="t" value="louer" /><span>Louer</span></label>
+  </div>
+  <div class="sb-field">
+    <label for="sb-famille">Type</label>
+    <select id="sb-famille" name="famille" class="sb-select">
+      <option value="">Tous types</option>
+      {Object.entries(FAMILY_LABELS).map(([k, v]) => <option value={k}>{v}</option>)}
+    </select>
+  </div>
+  <div class="sb-field">
+    <label for="sb-quartier">Quartier</label>
+    <select id="sb-quartier" name="quartier" class="sb-select">
+      <option value="">Tout Monaco</option>
+      {districts.map((d) => <option value={d.slug}>{d.name}</option>)}
+      <option value="zone:cote-d-azur">Côte d'Azur</option>
+      <option value="zone:international">International</option>
+    </select>
+  </div>
+  <div class="sb-field">
+    <label for="sb-budget">Budget</label>
+    <select id="sb-budget" name="max" class="sb-select" data-budget-vente>
+      <option value="">Tous budgets</option>
+      <option value="2000000">Jusqu'à 2 M€</option>
+      <option value="5000000">2 – 5 M€</option>
+      <option value="10000000">5 – 10 M€</option>
+      <option value="999999999">Plus de 10 M€</option>
+    </select>
+    <select id="sb-budget-loc" name="max" class="sb-select" data-budget-location hidden disabled aria-label="Budget mensuel">
+      <option value="">Tous budgets</option>
+      <option value="3000">Jusqu'à 3 000 €/mois</option>
+      <option value="8000">3 000 – 8 000 €/mois</option>
+      <option value="999999">Plus de 8 000 €/mois</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary sb-submit"><Icon name="search" size={18} /><span>Rechercher</span></button>
+</form>
+<style>
+  .search-bar { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; box-shadow: var(--shadow-md); }
+  @media (min-width: 1024px) {
+    .search-bar { grid-template-columns: auto 1fr 1fr 1fr auto; align-items: center; gap: 0; border-radius: var(--radius-full); padding: 8px 8px 8px 12px; min-block-size: 64px; }
+    .sb-field { border-left: 1px solid var(--border); padding-inline: 16px; }
+    .sb-seg { margin-right: 12px; }
+  }
+  .sb-field { display: grid; gap: 0; }
+  .sb-field label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+  .sb-select { appearance: none; border: 0; background: transparent; font-weight: 600; font-size: var(--fs-small); padding: 8px 24px 8px 0; min-block-size: 40px; cursor: pointer; inline-size: 100%; color: var(--text); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237A766E' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 4px center; }
+  @media (max-width: 1023px) { .sb-field { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); } }
+  .seg { display: inline-flex; background: var(--bg-2); border-radius: var(--radius-full); padding: 4px; }
+  .seg label { position: relative; }
+  .seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .seg span { display: inline-flex; align-items: center; min-block-size: 40px; padding: 0 18px; border-radius: var(--radius-full); font-weight: 600; font-size: var(--fs-small); color: var(--text-2); transition: background var(--dur-base), color var(--dur-base); }
+  .seg input:checked + span { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); }
+  .seg input:focus-visible + span { outline: 2px solid var(--focus); }
+  .sb-submit { min-block-size: 48px; }
+  @media (max-width: 1023px) { .sb-seg { justify-self: start; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-search-bar]').forEach((form) => {
+    const vente = form.querySelector<HTMLSelectElement>('[data-budget-vente]')!;
+    const loc = form.querySelector<HTMLSelectElement>('[data-budget-location]')!;
+    const sync = () => {
+      const t = (form.querySelector('input[name=t]:checked') as HTMLInputElement).value;
+      form.action = t === 'louer' ? '/louer/' : '/acheter/';
+      vente.hidden = vente.disabled = t === 'louer'; loc.hidden = loc.disabled = t !== 'louer';
+    };
+    form.querySelectorAll('input[name=t]').forEach((r) => r.addEventListener('change', sync)); sync();
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form); const p = new URLSearchParams();
+      const q = String(fd.get('quartier') || '');
+      if (q.startsWith('zone:')) p.set('zone', q.slice(5)); else if (q) p.set('quartier', q);
+      const f = String(fd.get('famille') || ''); if (f) p.set('famille', f);
+      const max = String(fd.get('max') || ''); if (max && max !== '999999999' && max !== '999999') p.set('max', max);
+      if (max === '999999999') p.set('min', '10000000'); if (max === '999999') p.set('min', '8000');
+      location.href = form.action + (p.toString() ? `?${p}` : '');
+    });
+  });
+</script>

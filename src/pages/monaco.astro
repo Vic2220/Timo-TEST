@@ -1,0 +1,55 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Illustration from '../components/Illustration.astro';
+import Icon from '../components/Icon.astro';
+import districts from '../data/districts.json';
+import { listings } from '../data/listings';
+const countIn = (slug: string) => listings.filter((l) => l.district === slug).length;
+---
+<Base title="Vivre à Monaco" description="Fiscalité, résidence, sécurité, écoles, quartiers : l'essentiel pour décider de s'installer à Monaco, en chiffres et en réponses courtes.">
+  <PageHero eyebrow="Vivre à Monaco" title="Vivre à Monaco" lead="L'essentiel pour décider, en chiffres et en réponses courtes." illustration="port" crumbs={[{ label: 'Vivre à Monaco' }]} />
+  <section class="section-tight"><div class="container">
+    <div class="stats6">
+      {[['2 km²', 'de territoire'], ['36 000', 'habitants'], ['120', 'nationalités'], ['~40', 'établissements bancaires'], ['1 pour 100', 'policier par habitant'], ['700', 'caméras de surveillance']].map(([n, l]) => <p class="stat"><span class="num">{n}</span><span class="lbl">{l}</span></p>)}
+    </div>
+  </div></section>
+
+  <section class="section-tight"><div class="container-narrow">
+    <h2 class="mb-5">Questions fréquentes</h2>
+    <details class="acc" open><summary>Pourquoi Monaco est-il stable ?</summary><div class="acc-body"><p>Monarchie héréditaire et constitutionnelle depuis 1911, la Principauté est gouvernée par la famille Grimaldi depuis 1297. Membre de l'ONU depuis 1993 et du Conseil de l'Europe depuis 2002, elle repose sur un modèle économique à l'équilibre budgétaire structurel, sans dette récurrente.</p></div></details>
+    <details class="acc" id="fiscalite"><summary>Quelle fiscalité pour un résident ?</summary><div class="acc-body"><ul><li>Pas d'impôt sur le revenu pour les résidents, à l'exception des ressortissants français (convention franco-monégasque de 1963).</li><li>Pas d'impôt sur la fortune ni sur les plus-values immobilières pour les particuliers.</li><li>Droits de succession nuls en ligne directe et entre époux.</li><li>TVA alignée sur la France (20 %).</li></ul><p class="small">Informations générales, à confirmer avec votre conseil fiscal.</p></div></details>
+    <details class="acc" id="residence"><summary>Comment devenir résident ?</summary><div class="acc-body"><p>Trois conditions principales : disposer d'un logement à Monaco (bail d'au moins 12 mois ou acquisition), justifier de ressources suffisantes via une banque monégasque, et présenter un extrait de casier judiciaire. Le délai d'instruction est en général de quelques semaines à quelques mois.</p><p><a href="/services/#residence" class="arrow">Notre accompagnement</a></p></div></details>
+    <details class="acc"><summary>Quelle sécurité au quotidien ?</summary><div class="acc-body"><p>Un policier pour cent habitants, environ 700 caméras actives 24 h/24 et la possibilité de fermer les accès à la Principauté en quelques minutes : le taux de délinquance est exceptionnellement bas.</p></div></details>
+    <details class="acc"><summary>Écoles, santé, transports ?</summary><div class="acc-body"><ul><li>Écoles publiques bilingues, International School of Monaco, lycée Albert-Ier.</li><li>Centre Hospitalier Princesse-Grace (CHPG), cliniques privées.</li><li>Gare TGV, héliport (7 min vers l'aéroport de Nice), aéroport de Nice à 30 km.</li><li>Entre mer et montagne : nautisme toute l'année, ski à 90 minutes.</li></ul></div></details>
+  </div></section>
+
+  <section class="section section-alt" id="quartiers" aria-labelledby="q-title"><div class="container">
+    <div class="section-head"><p class="eyebrow">Les quartiers</p><h2 id="q-title">Neuf quartiers, neuf façons d'habiter Monaco.</h2></div>
+    <div class="card-grid">
+      {districts.map((d) => (
+        <article class="card card-hover qcard">
+          <div class="media media-16x9"><Illustration kind={d.illustration} seed={d.name.length} title={`${d.name} — illustration`} /></div>
+          <div class="qbody">
+            <h3><a href={`/monaco/quartiers/${d.slug}/`}>{d.name}</a></h3>
+            <p class="small muted">{d.tagline}</p>
+            <p class="cluster small"><span class="badge badge-neutral"><Icon name="walk" size={12} /> Casino {d.walk.casino} min</span><span class="badge badge-neutral"><Icon name="train" size={12} /> Gare {d.walk.gare} min</span><span class="badge badge-neutral"><Icon name="wave" size={12} /> Plage {d.walk.plage} min</span></p>
+            <p class="small"><strong>{countIn(d.slug)} bien{countIn(d.slug) > 1 ? 's' : ''}</strong> · <a href={`/acheter/?quartier=${d.slug}`}>Voir les biens</a></p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div></section>
+  <FinalCta title="Vous envisagez de vous installer ? Parlons-en." />
+</Base>
+<style>
+  .stats6 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+  @media (min-width: 768px) { .stats6 { grid-template-columns: repeat(3, 1fr); } }
+  .stats6 .num { color: var(--accent-text); font-size: var(--fs-h2); }
+  .qcard { overflow: clip; position: relative; }
+  .qbody { padding: 16px; display: grid; gap: 8px; }
+  .qbody h3 a { color: inherit; text-decoration: none; } .qbody h3 a::after { content: ""; position: absolute; inset: 0; }
+  .qbody p a, .qbody .badge { position: relative; z-index: 1; }
+  details.acc[open] summary { color: var(--primary); }
+</style>

@@ -1,0 +1,26 @@
+---
+import Illustration from './Illustration.astro';
+interface Props { eyebrow?: string; title: string; lead?: string; illustration?: string; crumbs?: Array<{ label: string; href?: string }> }
+const { eyebrow, title, lead, illustration, crumbs = [] } = Astro.props;
+---
+<section class="page-hero">
+  <div class="container ph-grid">
+    <div class="ph-copy">
+      {crumbs.length > 0 && <nav class="small muted crumbs" aria-label="Fil d'Ariane"><a href="/">Accueil</a>{crumbs.map((c) => <> › {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</>)}</nav>}
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h1>{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <slot />
+    </div>
+    {illustration && <div class="ph-art media media-16x9"><Illustration kind={illustration} title="" seed={title.length} /></div>}
+  </div>
+</section>
+<style>
+  .page-hero { padding-block: var(--space-6) var(--space-7); }
+  .ph-grid { display: grid; gap: var(--space-5); }
+  @media (min-width: 1024px) { .ph-grid { grid-template-columns: 7fr 5fr; align-items: center; gap: var(--space-8); } }
+  .ph-copy { display: grid; gap: var(--space-4); }
+  .ph-copy h1 { max-inline-size: 20ch; }
+  .crumbs a { color: var(--text-2); }
+  .ph-art { border-radius: var(--radius-lg); max-block-size: 320px; }
+</style>

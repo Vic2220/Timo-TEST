@@ -1,0 +1,22 @@
+---
+interface Props { compact?: boolean; class?: string }
+const { compact = false, class: cls = '' } = Astro.props;
+---
+<a href="/" class={`logo ${cls}`} aria-label="Groupe SMIR — accueil">
+  <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" class="logo-mark">
+    <path d="M20 5 L36 33 H4Z" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M20 16 L28 30 H12Z" fill="var(--accent)"/>
+  </svg>
+  {!compact && (
+    <span class="logo-text">
+      <span class="logo-top">Groupe</span>
+      <span class="logo-name">SMIR</span>
+    </span>
+  )}
+</a>
+<style>
+  .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo-text { display: grid; line-height: 1; }
+  .logo-top { font-size: 0.6rem; letter-spacing: 0.32em; text-transform: uppercase; font-weight: 600; color: var(--text-2); }
+  .logo-name { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; letter-spacing: 0.08em; }
+</style>

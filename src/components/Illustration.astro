@@ -1,0 +1,188 @@
+---
+/**
+ * Illustrations SVG vectorielles « brand » (pas de photos dans la démo).
+ * Palette pilotée par CSS custom properties (voir global.css : --ill-*),
+ * donc adaptée au mode sombre. Remplacez par de vraies photos via <img> dans
+ * ListingCard / fiche bien dès qu'un flux d'images est disponible.
+ */
+import type { Illustration } from '../data/listings';
+interface Props { kind: Illustration | string; class?: string; title?: string; seed?: number }
+const { kind, class: cls = '', title = '', seed = 0 } = Astro.props;
+const id = `ill-${kind}-${Math.abs(seed) % 1000}-${Math.random().toString(36).slice(2, 7)}`;
+// Légère variation par bien (position du soleil / teinte) pour éviter la répétition visuelle.
+const sunX = 560 + ((seed * 37) % 160);
+const hue = (seed * 23) % 12 - 6;
+---
+<svg class={`ill ${cls}`} viewBox="0 0 800 600" role="img" aria-label={title} preserveAspectRatio="xMidYMid slice" style={`--h:${hue}deg`}>
+  <defs>
+    <linearGradient id={`${id}-sky`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--ill-sky-1)"/><stop offset="1" stop-color="var(--ill-sky-2)"/>
+    </linearGradient>
+    <linearGradient id={`${id}-sea`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--ill-sea-1)"/><stop offset="1" stop-color="var(--ill-sea-2)"/>
+    </linearGradient>
+    <linearGradient id={`${id}-gold`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--ill-gold-1)"/><stop offset="1" stop-color="var(--ill-gold-2)"/>
+    </linearGradient>
+    <linearGradient id={`${id}-stone`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--ill-stone-1)"/><stop offset="1" stop-color="var(--ill-stone-2)"/>
+    </linearGradient>
+    <linearGradient id={`${id}-dark`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--ill-dark-1)"/><stop offset="1" stop-color="var(--ill-dark-2)"/>
+    </linearGradient>
+  </defs>
+
+  {kind === 'sea-terrace' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="150" r="46" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect y="300" width="800" height="300" fill={`url(#${id}-sea)`}/>
+    <path d="M0 330 Q100 320 200 330 T400 330 T600 330 T800 330" stroke="var(--ill-light)" stroke-width="2" fill="none" opacity=".5"/>
+    <rect x="0" y="420" width="800" height="180" fill={`url(#${id}-stone)`}/>
+    <path d="M0 420 L800 420" stroke="var(--ill-gold-1)" stroke-width="3"/>
+    <g stroke="var(--ill-gold-1)" stroke-width="3" fill="none"><path d="M60 420 V380 H740 V420"/><path d="M160 380 V420 M260 380 V420 M360 380 V420 M460 380 V420 M560 380 V420 M660 380 V420"/></g>
+    <rect x="300" y="470" width="200" height="60" rx="8" fill="var(--ill-light)" opacity=".9"/>
+    <ellipse cx="640" cy="490" rx="60" ry="22" fill="var(--ill-plant)"/><rect x="630" y="490" width="20" height="60" fill="var(--ill-dark-2)"/>
+  </g>)}
+
+  {kind === 'penthouse' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="120" r="60" fill={`url(#${id}-gold)`} opacity=".85"/>
+    <rect y="360" width="800" height="240" fill={`url(#${id}-sea)`}/>
+    <path d="M0 460 H800 V600 H0Z" fill={`url(#${id}-dark)`}/>
+    <path d="M0 460 L800 460" stroke="var(--ill-gold-1)" stroke-width="4"/>
+    <g fill="var(--ill-light)" opacity=".92"><rect x="60" y="380" width="680" height="80" rx="4"/></g>
+    <g stroke="var(--ill-gold-1)" stroke-width="2" fill="none"><path d="M80 420 H720" /><path d="M120 380 V460 M240 380 V460 M360 380 V460 M480 380 V460 M600 380 V460"/></g>
+    <rect x="90" y="330" width="140" height="50" rx="6" fill="var(--ill-light)" opacity=".8"/>
+    <circle cx="560" cy="500" r="40" fill="var(--ill-sky-2)" opacity=".8"/>
+  </g>)}
+
+  {kind === 'interior' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-stone)`}/>
+    <rect x="0" y="470" width="800" height="130" fill={`url(#${id}-dark)`} opacity=".35"/>
+    <rect x="300" y="90" width="320" height="300" rx="6" fill={`url(#${id}-sky)`}/>
+    <rect x="300" y="300" width="320" height="90" fill={`url(#${id}-sea)`}/>
+    <rect x="300" y="90" width="320" height="300" rx="6" fill="none" stroke="var(--ill-gold-1)" stroke-width="5"/>
+    <path d="M460 90 V390 M300 240 H620" stroke="var(--ill-gold-1)" stroke-width="4"/>
+    <rect x="80" y="330" width="220" height="150" rx="12" fill="var(--ill-light)"/>
+    <rect x="100" y="310" width="180" height="40" rx="10" fill="var(--ill-light)" opacity=".8"/>
+    <circle cx="700" cy="120" r="30" fill={`url(#${id}-gold)`}/><rect x="696" y="150" width="8" height="330" fill="var(--ill-gold-2)"/>
+    <ellipse cx="640" cy="470" rx="44" ry="18" fill="var(--ill-plant)"/>
+  </g>)}
+
+  {kind === 'facade' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="110" r="40" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect x="120" y="120" width="560" height="480" fill={`url(#${id}-stone)`}/>
+    <rect x="120" y="120" width="560" height="26" fill="var(--ill-gold-1)"/>
+    <g fill="var(--ill-sky-2)" stroke="var(--ill-dark-1)" stroke-width="2">
+      {[180, 270, 360, 450].map((y) => [170, 290, 410, 530].map((x) => <rect x={x} y={y} width="70" height="60" rx="30" ry="12"/>))}
+    </g>
+    <g stroke="var(--ill-gold-2)" stroke-width="3" fill="none">{[240, 330, 420, 510].map((y) => <path d={`M150 ${y} H650`}/>)}</g>
+    <rect x="360" y="520" width="80" height="80" fill="var(--ill-dark-1)"/>
+    <ellipse cx="80" cy="560" rx="60" ry="40" fill="var(--ill-plant)"/><ellipse cx="730" cy="565" rx="55" ry="35" fill="var(--ill-plant)"/>
+  </g>)}
+
+  {kind === 'port' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <path d="M0 260 L120 180 L260 230 L420 150 L600 220 L800 170 V300 H0Z" fill={`url(#${id}-stone)`}/>
+    <g fill="var(--ill-light)" opacity=".9"><rect x="60" y="210" width="60" height="90"/><rect x="200" y="230" width="90" height="70"/><rect x="420" y="170" width="70" height="130"/><rect x="620" y="210" width="110" height="90"/></g>
+    <rect y="300" width="800" height="300" fill={`url(#${id}-sea)`}/>
+    <g fill="var(--ill-light)"><path d="M120 400 H330 L310 440 H140Z"/><rect x="200" y="330" width="6" height="70" fill="var(--ill-dark-1)"/><path d="M460 430 H700 L680 480 H480Z"/><rect x="560" y="340" width="6" height="90" fill="var(--ill-dark-1)"/></g>
+    <path d="M0 520 H800 V600 H0Z" fill={`url(#${id}-dark)`} opacity=".9"/>
+    <path d="M0 520 H800" stroke="var(--ill-gold-1)" stroke-width="4"/>
+    <circle cx={sunX} cy="90" r="36" fill={`url(#${id}-gold)`}/>
+  </g>)}
+
+  {kind === 'office' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-stone)`}/>
+    <rect x="80" y="80" width="640" height="330" rx="6" fill={`url(#${id}-sky)`}/>
+    <rect x="80" y="320" width="640" height="90" fill={`url(#${id}-sea)`}/>
+    <g stroke="var(--ill-dark-1)" stroke-width="4" fill="none"><rect x="80" y="80" width="640" height="330" rx="6"/><path d="M293 80 V410 M506 80 V410"/></g>
+    <rect x="140" y="420" width="520" height="22" rx="4" fill="var(--ill-light)"/>
+    <g fill="var(--ill-dark-1)"><rect x="180" y="442" width="10" height="120"/><rect x="610" y="442" width="10" height="120"/></g>
+    <g fill="var(--ill-light)"><rect x="240" y="460" width="90" height="60" rx="10"/><rect x="470" y="460" width="90" height="60" rx="10"/></g>
+    <rect x="300" y="390" width="200" height="34" rx="6" fill="var(--ill-gold-1)"/>
+  </g>)}
+
+  {kind === 'parking' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-dark)`}/>
+    <path d="M0 380 L800 380 V600 H0Z" fill="var(--ill-stone-2)" opacity=".35"/>
+    <g stroke="var(--ill-light)" stroke-width="5" opacity=".9"><path d="M160 380 L100 600 M400 380 L400 600 M640 380 L700 600"/></g>
+    <rect x="180" y="440" width="440" height="24" rx="4" fill="var(--ill-gold-1)" opacity=".9"/>
+    <rect x="220" y="80" width="360" height="130" rx="10" fill="var(--ill-light)" opacity=".12"/>
+    <text x="400" y="178" text-anchor="middle" font-family="Georgia, serif" font-size="120" fill="var(--ill-gold-1)">P</text>
+    <circle cx="140" cy="60" r="10" fill="var(--ill-gold-1)"/><circle cx="660" cy="60" r="10" fill="var(--ill-gold-1)"/>
+  </g>)}
+
+  {kind === 'villa' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="110" r="44" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect y="430" width="800" height="170" fill={`url(#${id}-sea)`}/>
+    <path d="M0 470 Q200 420 400 470 T800 470 V600 H0Z" fill="var(--ill-plant)"/>
+    <path d="M200 300 L400 180 L600 300Z" fill="var(--ill-terracotta)"/>
+    <rect x="230" y="300" width="340" height="170" fill={`url(#${id}-stone)`}/>
+    <g fill="var(--ill-sky-2)" stroke="var(--ill-dark-1)" stroke-width="2"><rect x="260" y="330" width="60" height="70"/><rect x="480" y="330" width="60" height="70"/></g>
+    <rect x="370" y="360" width="60" height="110" fill="var(--ill-dark-1)"/>
+    <rect x="230" y="320" width="340" height="6" fill="var(--ill-gold-1)"/>
+    <ellipse cx="120" cy="440" rx="50" ry="90" fill="var(--ill-plant)"/><ellipse cx="690" cy="430" rx="50" ry="100" fill="var(--ill-plant)"/>
+    <rect x="300" y="500" width="200" height="40" rx="20" fill="var(--ill-sky-2)"/>
+  </g>)}
+
+  {kind === 'new-build' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="100" r="36" fill={`url(#${id}-gold)`}/>
+    <rect y="470" width="800" height="130" fill={`url(#${id}-sea)`}/>
+    <g fill={`url(#${id}-stone)`}><rect x="150" y="80" width="200" height="420" rx="6"/><rect x="430" y="150" width="220" height="350" rx="6"/></g>
+    <g stroke="var(--ill-gold-1)" stroke-width="2" fill="none">{[120, 170, 220, 270, 320, 370, 420].map((y) => <path d={`M160 ${y} H340 M440 ${y + 60} H640`}/>)}</g>
+    <g stroke="var(--ill-light)" stroke-width="4" fill="none" opacity=".7"><path d="M150 80 H350 M430 150 H650"/></g>
+    <path d="M100 500 H700" stroke="var(--ill-gold-1)" stroke-width="5"/>
+    <ellipse cx="90" cy="520" rx="40" ry="18" fill="var(--ill-plant)"/><ellipse cx="710" cy="520" rx="40" ry="18" fill="var(--ill-plant)"/>
+  </g>)}
+
+  {kind === 'beach' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="130" r="56" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect y="300" width="800" height="200" fill={`url(#${id}-sea)`}/>
+    <path d="M0 470 Q200 440 400 480 T800 460 V600 H0Z" fill="var(--ill-sand)"/>
+    <g fill="var(--ill-light)" opacity=".6"><path d="M0 340 Q100 330 200 340 T400 340 T600 340 T800 340 V350 H0Z"/></g>
+    <g><rect x="196" y="380" width="8" height="140" fill="var(--ill-dark-1)"/><path d="M120 400 Q200 340 280 400Z" fill="var(--ill-gold-1)"/></g>
+    <g><rect x="556" y="400" width="8" height="120" fill="var(--ill-dark-1)"/><path d="M480 420 Q560 360 640 420Z" fill="var(--ill-light)"/></g>
+    <ellipse cx="100" cy="300" rx="60" ry="26" fill="var(--ill-plant)"/>
+  </g>)}
+
+  {kind === 'shop' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-stone)`}/>
+    <rect x="0" y="500" width="800" height="100" fill={`url(#${id}-dark)`} opacity=".4"/>
+    <rect x="100" y="120" width="600" height="380" fill={`url(#${id}-dark)`}/>
+    <path d="M80 120 H720 L700 60 H100Z" fill="var(--ill-gold-1)"/>
+    <g fill="var(--ill-gold-2)">{[120, 220, 320, 420, 520, 620].map((x) => <path d={`M${x} 120 Q${x + 30} 160 ${x + 60} 120Z`}/>)}</g>
+    <rect x="140" y="170" width="300" height="330" fill={`url(#${id}-sky)`} opacity=".9"/>
+    <rect x="470" y="170" width="190" height="330" fill="var(--ill-light)" opacity=".15"/>
+    <rect x="500" y="260" width="130" height="240" rx="4" fill="var(--ill-stone-2)"/>
+    <circle cx="610" cy="380" r="6" fill="var(--ill-gold-1)"/>
+    <g fill="var(--ill-gold-1)" opacity=".9"><rect x="180" y="300" width="80" height="100" rx="6"/><rect x="300" y="340" width="90" height="60" rx="6"/></g>
+  </g>)}
+
+  {kind === 'hills' && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="110" r="40" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect y="330" width="800" height="270" fill={`url(#${id}-sea)`}/>
+    <path d="M0 360 L160 200 L300 300 L420 220 L560 330 L800 180 V600 H0Z" fill="var(--ill-plant)" opacity=".85"/>
+    <path d="M0 460 L200 380 L400 440 L620 360 L800 420 V600 H0Z" fill={`url(#${id}-stone)`}/>
+    <g fill="var(--ill-light)" opacity=".9"><rect x="120" y="390" width="70" height="60"/><rect x="340" y="420" width="60" height="50"/><rect x="560" y="370" width="90" height="70"/></g>
+    <g fill="var(--ill-dark-1)" opacity=".6"><rect x="120" y="380" width="70" height="10"/><rect x="560" y="360" width="90" height="10"/></g>
+    <path d="M0 520 L800 520" stroke="var(--ill-gold-1)" stroke-width="3" opacity=".9"/>
+  </g>)}
+
+  {['casino', 'skyline', 'marina', 'rocher', 'tower'].includes(kind) && (<g>
+    <rect width="800" height="600" fill={`url(#${id}-sky)`}/>
+    <circle cx={sunX} cy="120" r="46" fill={`url(#${id}-gold)`} opacity=".9"/>
+    <rect y="340" width="800" height="260" fill={`url(#${id}-sea)`}/>
+    {kind === 'casino' && (<g><rect x="200" y="200" width="400" height="200" fill={`url(#${id}-stone)`}/><path d="M250 200 Q300 120 350 200Z M450 200 Q500 120 550 200Z" fill="var(--ill-gold-1)"/><rect x="380" y="300" width="40" height="100" fill="var(--ill-dark-1)"/><rect x="200" y="200" width="400" height="8" fill="var(--ill-gold-1)"/></g>)}
+    {kind === 'skyline' && (<g fill={`url(#${id}-stone)`}><rect x="60" y="220" width="90" height="200"/><rect x="180" y="150" width="110" height="270"/><rect x="330" y="240" width="80" height="180"/><rect x="450" y="120" width="120" height="300"/><rect x="610" y="200" width="130" height="220"/></g>)}
+    {kind === 'marina' && (<g><path d="M0 420 H800 V600 H0Z" fill={`url(#${id}-dark)`} opacity=".9"/><g fill="var(--ill-light)"><path d="M100 380 H260 L245 420 H115Z"/><path d="M340 390 H480 L465 420 H355Z"/><path d="M560 370 H740 L725 420 H575Z"/></g><g fill="var(--ill-dark-1)"><rect x="180" y="300" width="5" height="80"/><rect x="410" y="320" width="5" height="70"/><rect x="650" y="280" width="5" height="90"/></g></g>)}
+    {kind === 'rocher' && (<g><path d="M100 400 L260 180 L420 240 L560 160 L720 400Z" fill={`url(#${id}-stone)`}/><g fill="var(--ill-light)"><rect x="300" y="210" width="60" height="60"/><rect x="420" y="190" width="80" height="80"/><rect x="540" y="230" width="50" height="60"/></g><rect x="440" y="150" width="40" height="40" fill="var(--ill-gold-1)"/></g>)}
+    {kind === 'tower' && (<g><rect x="320" y="60" width="160" height="440" rx="10" fill={`url(#${id}-stone)`}/><g stroke="var(--ill-gold-1)" stroke-width="2">{[100,140,180,220,260,300,340,380,420,460].map((y) => <path d={`M330 ${y} H470`}/>)}</g><rect x="300" y="500" width="200" height="30" rx="15" fill="var(--ill-sky-2)"/></g>)}
+    <path d="M0 500 H800 V600 H0Z" fill="var(--ill-plant)" opacity=".5"/>
+  </g>)}
+</svg>

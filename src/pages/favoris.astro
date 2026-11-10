@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import ListingCard from '../components/ListingCard.astro';
+import Icon from '../components/Icon.astro';
+import { listings } from '../data/listings';
+---
+<Base title="Vos favoris" noindex>
+  <section class="section-tight"><div class="container">
+    <h1>Vos favoris</h1>
+    <p class="lead mt-2">Enregistrés sur cet appareil. Envoyez-vous la liste pour la retrouver ailleurs.</p>
+    <div class="cluster mt-5" data-fav-actions hidden>
+      <button type="button" class="btn btn-secondary btn-sm" data-share-favs><Icon name="share" size={16} /> Partager ma sélection</button>
+      <a href="/contact/?objet=acheter" class="btn btn-secondary btn-sm" data-visit-favs>Demander une visite groupée</a>
+    </div>
+    <div class="card-grid mt-6" data-fav-grid>{listings.map((l) => <div data-fav-item={l.ref} hidden><ListingCard listing={l} /></div>)}</div>
+    <div class="card empty" data-fav-empty>
+      <svg viewBox="0 0 160 100" width="160" aria-hidden="true"><path d="M20 90 V50 A60 60 0 0 1 140 50 V90" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M80 75s-18-11-18-24a9 9 0 0 1 18-5 9 9 0 0 1 18 5c0 13-18 24-18 24Z" fill="none" stroke="var(--error)" stroke-width="2.5"/></svg>
+      <h2 class="h3">Vous n'avez pas encore de favori.</h2>
+      <p class="muted">Touchez le cœur sur un bien pour le retrouver ici.</p>
+      <a href="/acheter/" class="btn btn-primary">Voir les biens à vendre</a>
+    </div>
+  </div></section>
+</Base>
+<style>
+  .empty { padding: var(--space-7); text-align: center; display: grid; gap: var(--space-4); justify-items: center; max-inline-size: 560px; margin: var(--space-6) auto 0; }
+  .h3 { font-size: var(--fs-h3); }
+</style>
+<script>
+  function render() {
+    let favs: string[] = []; try { favs = JSON.parse(localStorage.getItem('smir-favs') || '[]'); } catch {}
+    const p = new URLSearchParams(location.search); const shared = (p.get('refs') ?? '').split(',').filter(Boolean); if (shared.length) favs = shared;
+    document.querySelectorAll<HTMLElement>('[data-fav-item]').forEach((el) => { el.hidden = !favs.includes(el.dataset.favItem!); });
+    (document.querySelector('[data-fav-empty]') as HTMLElement).hidden = favs.length > 0;
+    (document.querySelector('[data-fav-actions]') as HTMLElement).hidden = favs.length === 0;
+    (document.querySelector('[data-visit-favs]') as HTMLAnchorElement).href = `/contact/?objet=acheter&resume=${encodeURIComponent('visite des biens ' + favs.join(', '))}`;
+  }
+  render(); document.addEventListener('smir:favs', render);
+  document.querySelector('[data-share-favs]')?.addEventListener('click', async () => {
+    let favs: string[] = []; try { favs = JSON.parse(localStorage.getItem('smir-favs') || '[]'); } catch {}
+    const url = `${location.origin}/favoris/?refs=${favs.join(',')}`;
+    if (navigator.share) { try { await navigator.share({ title: 'Ma sélection Groupe SMIR', url }); return; } catch {} }
+    await navigator.clipboard.writeText(url); (window as any).toast?.('Lien copié');
+  });
+</script>

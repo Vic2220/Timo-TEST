@@ -1,0 +1,520 @@
+---
+/**
+ * Assistant SMIR — « Trouvez votre bien »
+ * Bouton flottant (desktop) + panneau latéral / bottom sheet (mobile).
+ * Flux guidé Q1→Q8 + flux vendeur, résultats scorés et expliqués (lib/match.ts),
+ * saisie libre (lib/parse.ts). 100 % client, sans clé API. Voir DESIGN-SPEC §8.
+ */
+import Icon from './Icon.astro';
+import { site } from '../data/site';
+---
+<button type="button" class="fab" data-open-assistant aria-haspopup="dialog" aria-controls="assistant" aria-expanded="false" id="assistant-fab">
+  <Icon name="sparkles" size={20} /><span class="fab-label">Trouvez votre bien</span>
+</button>
+
+<div class="assistant" id="assistant" hidden>
+  <div class="as-backdrop" data-close-assistant></div>
+  <section class="as-panel" role="dialog" aria-modal="false" aria-labelledby="assistant-title" tabindex="-1">
+    <div class="as-handle" aria-hidden="true"></div>
+    <header class="as-head">
+      <div class="as-brand">
+        <span class="as-icon"><Icon name="sparkles" size={22} /></span>
+        <div><p id="assistant-title" class="as-title">Assistant SMIR</p><p class="as-sub">Trouvez votre bien en 2 minutes</p></div>
+      </div>
+      <div class="as-tools">
+        <button type="button" class="btn-icon" data-as-restart aria-label="Recommencer" title="Recommencer" hidden><Icon name="arrowLeft" size={20} /></button>
+        <button type="button" class="btn-icon" data-close-assistant aria-label="Fermer l'assistant"><Icon name="close" size={22} /></button>
+      </div>
+    </header>
+    <div class="as-progress" role="progressbar" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" aria-label="Progression">
+      <div class="as-segments" data-as-segments>{Array.from({ length: 8 }).map(() => <span></span>)}</div>
+      <span class="as-step" data-as-step></span>
+    </div>
+    <div class="as-body" data-as-body aria-live="polite"></div>
+    <footer class="as-foot">
+      <form class="as-free" data-as-free>
+        <label class="sr-only" for="as-free-input">Précisez votre recherche</label>
+        <input id="as-free-input" class="input" type="text" placeholder="Précisez votre recherche… ex. 3 pièces vue mer Larvotto" autocomplete="off" />
+        <button type="submit" class="btn btn-primary" aria-label="Envoyer"><Icon name="arrowRight" size={18} /></button>
+      </form>
+      <p class="as-legal">Sans engagement · <a href="/mentions-legales/#confidentialite">Confidentialité</a> · <a href={site.phone.href}>{site.phone.display}</a></p>
+    </footer>
+  </section>
+</div>
+
+<style>
+  .fab { position: fixed; right: 24px; bottom: 24px; z-index: var(--z-fab); display: none; align-items: center; gap: 10px; min-block-size: 56px; padding: 0 20px 0 16px; border-radius: var(--radius-full); background: var(--primary-solid); color: #fff; font-weight: 600; font-size: 0.9375rem; box-shadow: var(--shadow-lg); transition: transform var(--dur-fast), background var(--dur-fast); }
+  .fab:hover { transform: translateY(-2px); background: var(--primary-hover); }
+  :root[data-theme="dark"] .fab:hover { background: #3A7AB3; }
+  .fab:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .fab.pulse { animation: ring 900ms var(--ease-out) 1; }
+  @keyframes ring { from { box-shadow: var(--shadow-lg), 0 0 0 0 rgb(30 78 122 / 0.45); } to { box-shadow: var(--shadow-lg), 0 0 0 14px rgb(30 78 122 / 0); } }
+  .fab.has-progress .fab-label::after { content: ""; display: inline-block; inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--accent); margin-left: 8px; vertical-align: middle; }
+  @media (min-width: 1024px) { .fab { display: inline-flex; } body.assistant-open .fab { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .fab.pulse { animation: none; } }
+
+  .assistant { position: fixed; inset: 0; z-index: var(--z-sheet); }
+  .as-backdrop { position: absolute; inset: 0; background: var(--overlay); animation: fade var(--dur-slow); }
+  .as-panel { position: absolute; display: grid; grid-template-rows: auto auto auto 1fr auto; background: var(--bg); box-shadow: var(--shadow-lg); overflow: hidden; outline: none; container-type: inline-size; }
+  /* Mobile : bottom sheet */
+  .as-panel { inset-inline: 0; bottom: 0; block-size: 92dvh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; animation: up var(--dur-slow) var(--ease-out); padding-bottom: env(safe-area-inset-bottom); }
+  .as-handle { inline-size: 36px; block-size: 4px; border-radius: 2px; background: var(--border-strong); margin: 10px auto 0; }
+  @media (min-width: 1024px) {
+    .as-backdrop { display: none; }
+    .as-panel { inset-block: 0; right: 0; left: auto; inline-size: 420px; block-size: 100dvh; border-radius: 0; border-left: 1px solid var(--border); animation: slide var(--dur-slow) var(--ease-out); }
+    .as-handle { display: none; }
+  }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes up { from { transform: translateY(100%); } }
+  @keyframes slide { from { transform: translateX(100%); } }
+  .as-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 12px 12px 20px; min-block-size: 64px; border-bottom: 1px solid var(--border); }
+  .as-brand { display: flex; align-items: center; gap: 12px; }
+  .as-icon { display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: var(--radius-md); background: var(--accent-tint); color: var(--accent-on-tint); }
+  .as-title { font-weight: 600; font-size: 1rem; line-height: 1.2; }
+  .as-sub { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; }
+  .as-tools { display: flex; gap: 2px; }
+  .as-progress { display: flex; align-items: center; gap: 12px; padding: 10px 20px; }
+  .as-segments { display: flex; gap: 4px; flex: 1; }
+  .as-segments span { flex: 1; block-size: 4px; border-radius: 2px; background: var(--border); transition: background var(--dur-base); }
+  .as-segments span.done { background: var(--primary); }
+  .as-segments span.current { background: color-mix(in srgb, var(--primary) 50%, var(--border)); }
+  .as-step { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; font-weight: 600; white-space: nowrap; }
+  .as-body { overflow-y: auto; overscroll-behavior: contain; padding: 20px; display: grid; gap: 16px; align-content: start; scroll-behavior: smooth; }
+  .as-foot { border-top: 1px solid var(--border); padding: 12px 20px; display: grid; gap: 8px; background: var(--bg); }
+  .as-free { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .as-free .btn { min-block-size: 48px; padding-inline: 14px; }
+  .as-legal { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; text-align: center; }
+
+  /* Messages */
+  .as-body :global(.msg) { display: flex; gap: 10px; align-items: flex-start; animation: msgIn var(--dur-base) var(--ease-out); }
+  .as-body :global(.msg svg) { flex: none; color: var(--accent); margin-top: 3px; }
+  .as-body :global(.msg p) { max-inline-size: 36ch; line-height: 1.5; }
+  .as-body :global(.msg.err p) { background: var(--error-tint); padding: 10px 12px; border-radius: var(--radius-sm); }
+  .as-body :global(.answer) { justify-self: end; max-inline-size: 85%; }
+  .as-body :global(.answer button) { background: var(--primary-tint); color: var(--primary); font-size: var(--fs-small); font-weight: 600; padding: 8px 12px; border-radius: 16px; text-align: left; }
+  .as-body :global(.answer button:hover) { text-decoration: underline; }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } }
+  /* Option cards */
+  .as-body :global(fieldset) { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .as-body :global(legend) { font-weight: 600; margin-bottom: 10px; font-size: 1rem; }
+  .as-body :global(.sublegend) { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; margin: 4px 0 2px; font-weight: 600; }
+  .as-body :global(.opts) { display: grid; gap: 8px; grid-template-columns: 1fr; }
+  @container (min-width: 380px) { .as-body :global(.opts) { grid-template-columns: 1fr 1fr; } .as-body :global(.opts.cols-1) { grid-template-columns: 1fr; } }
+  .as-body :global(.opt) { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; min-block-size: 56px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: border-color var(--dur-fast), background var(--dur-fast); }
+  .as-body :global(.opt:hover) { border-color: var(--border-strong); }
+  .as-body :global(.opt input) { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .as-body :global(.opt:has(input:focus-visible)) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .as-body :global(.opt:has(input:checked)) { border: 2px solid var(--primary); background: var(--primary-tint); padding: 9px 13px; }
+  .as-body :global(.opt svg) { color: var(--accent); }
+  .as-body :global(.opt strong) { display: block; font-size: 0.9375rem; font-weight: 600; line-height: 1.25; }
+  .as-body :global(.opt small) { display: block; font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; margin-top: 2px; font-weight: 500; }
+  .as-body :global(.opt.chip-opt) { min-block-size: 44px; grid-template-columns: 1fr; padding-block: 8px; text-align: center; }
+  .as-body :global(.opts.chips) { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .as-body :global(.as-actions) { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .as-body :global(.as-actions .right) { display: flex; gap: 8px; margin-left: auto; }
+  .as-body :global(.as-help) { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; }
+  /* Contact form */
+  .as-body :global(.as-form) { display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+  /* Result cards */
+  .as-body :global(.rc) { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: clip; display: grid; }
+  .as-body :global(.rc .media) { aspect-ratio: 16 / 9; position: relative; }
+  .as-body :global(.rc .score) { position: absolute; top: 10px; right: 10px; background: color-mix(in srgb, var(--surface) 92%, transparent); padding: 4px 10px; border-radius: var(--radius-full); font-size: var(--fs-caption); font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--text); }
+  .as-body :global(.rc .score.hi) { color: var(--success); }
+  .as-body :global(.rc .score.lo) { color: var(--text-2); }
+  .as-body :global(.rc-body) { padding: 14px; display: grid; gap: 6px; }
+  .as-body :global(.rc .price) { font-size: 1.25rem; }
+  .as-body :global(.rc h3) { font-size: 1.125rem; font-weight: 600; line-height: 1.25; font-family: var(--font-body); }
+  .as-body :global(.rc .meta) { font-size: var(--fs-small); color: var(--text-2); }
+  .as-body :global(.rc .why) { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .as-body :global(.rc .why span) { font-size: var(--fs-caption); font-weight: 600; letter-spacing: 0; text-transform: none; padding: 3px 8px; border-radius: var(--radius-xs); background: var(--success-tint); color: var(--success); }
+  .as-body :global(.rc .why span.miss) { background: var(--bg-2); color: var(--text-2); }
+  .as-body :global(.rc .explain) { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; }
+  .as-body :global(.rc .rc-actions) { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .as-body :global(.rc .media svg) { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
+  .as-body :global(.sk) { block-size: 220px; border-radius: var(--radius-md); }
+  .as-body :global(.district-advice) { background: var(--accent-tint); color: var(--accent-on-tint); padding: 12px 14px; border-radius: var(--radius-sm); font-size: var(--fs-small); }
+</style>
+
+<script>
+  import { listings as ALL, FAMILY_LABELS } from '../data/listings';
+  import districtsData from '../data/districts.json';
+  import { findMatches, criteriaToQuery, type Criteria, type Project } from '../lib/match';
+  import { parseQuery } from '../lib/parse';
+  import { formatPrice, placeLabel } from '../lib/format';
+
+  type Answers = {
+    family?: string; project?: Project; budget?: string; rooms?: string; surface?: string;
+    districts?: string[]; features?: string[]; timeline?: string; seller?: { action?: string; type?: string; district?: string };
+    contact?: { name: string; email: string };
+  };
+  type Step = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q8' | 'results' | 'v1' | 'v2' | 'v3' | 'vend';
+  const ORDER: Step[] = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'results'];
+  const ICON: Record<string, string> = {
+    building: '<path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 9h5a1 1 0 0 1 1 1v11M3 21h18M8 8h2m-2 4h2m-2 4h2"/>',
+    house: '<path d="m3 11 9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
+    shop: '<path d="M4 9 5.5 4h13L20 9M4 9v11h16V9M4 9h16M9 20v-6h6v6"/>',
+    car: '<path d="M5 17h14M4 11l1.5-4A2 2 0 0 1 7.4 6h9.2a2 2 0 0 1 1.9 1.3L20 11m-16 0h16v5H4Z"/><circle cx="7.5" cy="14" r="1"/><circle cx="16.5" cy="14" r="1"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>',
+    key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-3 3 2 2m-5 1 2 2"/>',
+    trending: '<path d="m3 17 6-6 4 4 8-8m-5 0h5v5"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/>',
+    scale: '<path d="M12 3v18M5 7h14M3 21h18M6 7l-3 7a3 3 0 0 0 6 0L6 7Zm12 0-3 7a3 3 0 0 0 6 0l-3-7Z"/>',
+    sparkles: '<path d="M12 3 13.8 8.2 19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z"/><path d="M19 16v4m-2-2h4M5 4v3M3.5 5.5h3"/>',
+    pin: '<path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11Z"/><circle cx="12" cy="10" r="2"/>',
+  };
+  const svg = (n: string, s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n] ?? ICON.sparkles}</svg>`;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+  const root = document.getElementById('assistant')!;
+  const panel = root.querySelector('.as-panel') as HTMLElement;
+  const body = root.querySelector('[data-as-body]') as HTMLElement;
+  const fab = document.getElementById('assistant-fab')!;
+  const restartBtn = root.querySelector('[data-as-restart]') as HTMLButtonElement;
+  const segs = Array.from(root.querySelectorAll('[data-as-segments] span')) as HTMLElement[];
+  const stepLabel = root.querySelector('[data-as-step]') as HTMLElement;
+  const progress = root.querySelector('.as-progress') as HTMLElement;
+  const freeForm = root.querySelector('[data-as-free]') as HTMLFormElement;
+  const freeInput = freeForm.querySelector('input') as HTMLInputElement;
+  const mainEl = document.getElementById('main');
+
+  let answers: Answers = {};
+  let step: Step = 'q1';
+  let opener: HTMLElement | null = null;
+  const store = { get: () => { try { return JSON.parse(sessionStorage.getItem('smir-assistant-state') || 'null'); } catch { return null; } }, set: () => { try { sessionStorage.setItem('smir-assistant-state', JSON.stringify({ answers, step })); } catch {} }, clear: () => { try { sessionStorage.removeItem('smir-assistant-state'); } catch {} } };
+
+  // ───────── Ouverture / fermeture ─────────
+  function open(from?: HTMLElement, prefillText?: string) {
+    opener = from ?? null;
+    root.hidden = false; document.body.classList.add('assistant-open');
+    fab.setAttribute('aria-expanded', 'true');
+    if (matchMedia('(max-width: 1023px)').matches) { document.body.style.overflow = 'hidden'; panel.setAttribute('aria-modal', 'true'); if (mainEl) (mainEl as any).inert = true; }
+    try { localStorage.setItem('smir-assistant-seen', '1'); } catch {}
+    const saved = store.get();
+    if (prefillText) { answers = {}; applyParsed(prefillText); }
+    else if (saved && saved.answers && Object.keys(saved.answers).length && body.childElementCount === 0) { answers = saved.answers; step = saved.step; body.innerHTML = ''; msg(`Reprenons où nous en étions : ${stepLabelText(step)}.`); render(); }
+    else if (body.childElementCount === 0) { start(); }
+    panel.focus();
+  }
+  function close() {
+    root.hidden = true; document.body.classList.remove('assistant-open'); document.body.style.overflow = '';
+    fab.setAttribute('aria-expanded', 'false'); panel.setAttribute('aria-modal', 'false'); if (mainEl) (mainEl as any).inert = false;
+    fab.classList.toggle('has-progress', Object.keys(answers).length > 0 && step !== 'q1');
+    (opener ?? fab).focus();
+  }
+  document.addEventListener('click', (e) => {
+    const t = (e.target as HTMLElement).closest('[data-open-assistant]') as HTMLElement | null;
+    if (t) { e.preventDefault(); open(t, t.dataset.prefill); }
+    if ((e.target as HTMLElement).closest('[data-close-assistant]')) close();
+  });
+  root.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { if (document.activeElement === freeInput && freeInput.value) { freeInput.value = ''; } else close(); }
+  });
+  restartBtn.addEventListener('click', () => { answers = {}; step = 'q1'; body.innerHTML = ''; store.clear(); start(); });
+  // Swipe vers le bas (mobile)
+  let y0 = 0, t0 = 0;
+  panel.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY; t0 = Date.now(); }, { passive: true });
+  panel.addEventListener('touchend', (e) => { const dy = e.changedTouches[0].clientY - y0; const v = dy / (Date.now() - t0); if (body.scrollTop <= 0 && (dy > 120 || v > 0.5) && matchMedia('(max-width: 1023px)').matches) close(); });
+  // Pulse d'attention (une fois)
+  try { if (!localStorage.getItem('smir-assistant-seen') && !matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(() => fab.classList.add('pulse'), 6000); } catch {}
+  // Reprise : marqueur sur le bouton
+  { const s = store.get(); if (s && s.answers && Object.keys(s.answers).length) fab.classList.add('has-progress'); }
+
+  // ───────── Rendu ─────────
+  function msg(text: string, cls = '') { const el = document.createElement('div'); el.className = `msg ${cls}`; el.innerHTML = `${svg('sparkles', 20)}<p>${text}</p>`; body.append(el); scrollEnd(); return el; }
+  function answer(text: string, goto: Step) { const el = document.createElement('div'); el.className = 'answer'; el.innerHTML = `<button type="button" aria-label="Modifier : ${esc(text)}">${esc(text)}</button>`; el.querySelector('button')!.addEventListener('click', () => { step = goto; body.innerHTML = ''; render(true); }); body.append(el); }
+  function scrollEnd() { requestAnimationFrame(() => { body.lastElementChild?.scrollIntoView({ block: 'end', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }); }
+  function setProgress() {
+    const idx = ORDER.indexOf(step);
+    const sellerSteps: Step[] = ['v1', 'v2', 'v3', 'vend'];
+    const si = sellerSteps.indexOf(step);
+    const n = idx >= 0 ? idx : (si >= 0 ? 2 + si : 0);
+    const total = si >= 0 ? 5 : 8;
+    segs.forEach((s, i) => { s.className = i < n ? 'done' : i === n ? 'current' : ''; s.hidden = i >= total; });
+    progress.setAttribute('aria-valuenow', String(n)); progress.setAttribute('aria-valuemax', String(total));
+    stepLabel.textContent = step === 'results' ? 'Résultats' : `Étape ${Math.min(n + 1, total)} sur ${total}`;
+    restartBtn.hidden = step === 'q1' && !Object.keys(answers).length;
+    store.set();
+  }
+  function stepLabelText(s: Step) { const i = ORDER.indexOf(s); return i >= 0 && s !== 'results' ? `étape ${i + 1} sur 8` : s === 'results' ? 'vos résultats' : 'votre demande d\'estimation'; }
+  function start() { msg('Bonjour. Je vous aide à trouver un bien à Monaco ou à préparer la vente du vôtre. Quelques questions suffisent, sans engagement.'); step = 'q1'; render(); }
+
+  function options(opts: Array<{ v: string; l: string; s?: string; i?: string }>, name: string, multi = false, cls = '') {
+    return `<div class="opts ${cls}">${opts.map((o) => `<label class="opt ${cls.includes('chips') ? 'chip-opt' : ''}"><input type="${multi ? 'checkbox' : 'radio'}" name="${name}" value="${esc(o.v)}">${o.i ? svg(o.i) : ''}<span><strong>${esc(o.l)}</strong>${o.s ? `<small>${esc(o.s)}</small>` : ''}</span></label>`).join('')}</div>`;
+  }
+  function question(legend: string, inner: string, actions = '') {
+    const f = document.createElement('fieldset'); f.innerHTML = `<legend>${legend}</legend>${inner}${actions ? `<div class="as-actions">${actions}</div>` : ''}`; body.append(f); scrollEnd(); return f;
+  }
+  const backBtn = (to: Step | null) => to ? `<button type="button" class="btn btn-ghost btn-sm" data-back="${to}">← Retour</button>` : '<span></span>';
+  function wireBack(f: HTMLElement) { f.querySelector('[data-back]')?.addEventListener('click', (e) => { step = (e.currentTarget as HTMLElement).dataset.back as Step; body.innerHTML = ''; render(true); }); }
+
+  function render(replay = false) {
+    if (replay) { replayAnswers(); }
+    setProgress();
+    switch (step) {
+      case 'q1': {
+        const f = question('Quel type de bien recherchez-vous ?', options([
+          { v: 'appartement', l: 'Appartement', s: 'Studio à penthouse', i: 'building' },
+          { v: 'villa', l: 'Villa / Maison', s: 'Monaco, Cap d\'Ail, Roquebrune…', i: 'house' },
+          { v: 'bureau-commerce', l: 'Bureau / Commerce', s: 'Bureaux, boutiques, murs', i: 'shop' },
+          { v: 'parking-cave', l: 'Parking / Cave', s: 'Places, boxes, caves', i: 'car' },
+          { v: 'indecis', l: 'Je ne sais pas encore', s: 'Nous vous conseillons', i: 'compass' },
+        ], 'family'));
+        f.addEventListener('change', (e) => { answers.family = (e.target as HTMLInputElement).value; commit(f, labelOf(f), 'q2'); });
+        break;
+      }
+      case 'q2': {
+        const f = question('Quel est votre projet ?', options([
+          { v: 'habiter', l: 'Acheter pour y vivre', i: 'key' },
+          { v: 'investir', l: 'Investir', s: 'Rendement, patrimoine', i: 'trending' },
+          { v: 'louer', l: 'Louer', s: 'Résidence, bureau, saisonnier', i: 'calendar' },
+          { v: 'vendre', l: 'Vendre, louer ou faire gérer mon bien', s: 'Vous êtes propriétaire', i: 'scale' },
+        ], 'project'), backBtn('q1'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.project = (e.target as HTMLInputElement).value as Project; commit(f, labelOf(f), answers.project === 'vendre' ? 'v1' : 'q3'); });
+        break;
+      }
+      case 'q3': {
+        const loc = answers.project === 'louer'; const park = answers.family === 'parking-cave';
+        const opts = park
+          ? (loc ? [['0-400', 'Jusqu\'à 400 €/mois'], ['400-800', '400 à 800 €/mois'], ['800-', 'Plus de 800 €/mois']] : [['0-300000', 'Jusqu\'à 300 000 €'], ['300000-600000', '300 à 600 k€'], ['600000-', 'Plus de 600 k€']])
+          : (loc ? [['0-3000', 'Jusqu\'à 3 000 €'], ['3000-6000', '3 000 à 6 000 €'], ['6000-12000', '6 000 à 12 000 €'], ['12000-', 'Plus de 12 000 €']] : [['0-2000000', 'Jusqu\'à 2 M€'], ['2000000-5000000', '2 à 5 M€'], ['5000000-10000000', '5 à 10 M€'], ['10000000-', 'Plus de 10 M€']]);
+        opts.push(['', 'Je préfère ne pas préciser']);
+        const f = question(loc ? 'Quel loyer mensuel envisagez-vous ?' : 'Quel budget envisagez-vous ?', options(opts.map(([v, l]) => ({ v, l })), 'budget', false, 'chips cols-1'), backBtn('q2'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.budget = (e.target as HTMLInputElement).value; commit(f, labelOf(f), park ? 'q5' : 'q4'); });
+        break;
+      }
+      case 'q4': {
+        const office = answers.family === 'bureau-commerce';
+        const rooms = office ? '' : `<p class="sublegend">Pièces</p>${options([['1', 'Studio'], ['2', '2 pièces'], ['3', '3 pièces'], ['4', '4 pièces'], ['5', '5 pièces et plus'], ['', 'Peu importe']].map(([v, l]) => ({ v, l })), 'rooms', false, 'chips')}`;
+        const surf = `<p class="sublegend">Surface minimale</p>${options([['0', 'Moins de 50 m²'], ['50', '50 à 100 m²'], ['100', '100 à 200 m²'], ['200', 'Plus de 200 m²'], ['', 'Peu importe']].map(([v, l]) => ({ v, l })), 'surface', false, 'chips')}`;
+        const f = question('Quelle taille vous conviendrait ?', rooms + surf, `${backBtn('q3')}<div class="right"><button type="button" class="btn btn-primary btn-sm" data-next>Continuer</button></div>`);
+        wireBack(f);
+        f.querySelector('[data-next]')!.addEventListener('click', () => {
+          answers.rooms = (f.querySelector('input[name=rooms]:checked') as HTMLInputElement | null)?.value ?? '';
+          answers.surface = (f.querySelector('input[name=surface]:checked') as HTMLInputElement | null)?.value ?? '';
+          const parts = [labelOfName(f, 'rooms'), labelOfName(f, 'surface')].filter(Boolean);
+          commit(f, parts.join(' · ') || 'Peu importe', 'q5');
+        });
+        break;
+      }
+      case 'q5': {
+        const counts = countByDistrict();
+        const opts = districtsData.map((d) => ({ v: d.slug, l: d.name, s: `${counts[d.slug] ?? 0} bien${(counts[d.slug] ?? 0) > 1 ? 's' : ''}` }));
+        opts.push({ v: 'zone:cote-d-azur', l: 'Côte d\'Azur (hors Monaco)', s: `${counts['zone:cote-d-azur'] ?? 0} biens` });
+        opts.push({ v: 'conseil', l: 'Conseillez-moi', s: 'Nous choisissons pour vous' });
+        const f = question('Avez-vous des quartiers préférés ? Vous pouvez en choisir plusieurs.', options(opts, 'districts', true), `${backBtn(answers.family === 'parking-cave' ? 'q3' : 'q4')}<div class="right"><button type="button" class="btn btn-primary btn-sm" data-next>Continuer</button></div>`);
+        wireBack(f);
+        f.addEventListener('change', (e) => {
+          const t = e.target as HTMLInputElement;
+          if (t.value === 'conseil' && t.checked) f.querySelectorAll<HTMLInputElement>('input[name=districts]').forEach((i) => { if (i !== t) i.checked = false; });
+          else if (t.checked) (f.querySelector('input[value=conseil]') as HTMLInputElement).checked = false;
+        });
+        f.querySelector('[data-next]')!.addEventListener('click', () => {
+          const sel = Array.from(f.querySelectorAll<HTMLInputElement>('input[name=districts]:checked')).map((i) => i.value);
+          answers.districts = sel.filter((v) => v !== 'conseil');
+          const labels = Array.from(f.querySelectorAll<HTMLInputElement>('input[name=districts]:checked')).map((i) => i.closest('label')!.querySelector('strong')!.textContent!);
+          commit(f, labels.join(', ') || 'Conseillez-moi', 'q6');
+        });
+        break;
+      }
+      case 'q6': {
+        const f = question('Qu\'est-ce qui compte le plus pour vous ?', options([
+          ['vue-mer', 'Vue mer'], ['terrasse', 'Terrasse ou jardin'], ['parking', 'Parking inclus'], ['concierge', 'Concierge'], ['piscine', 'Piscine'], ['meuble', 'Meublé'], ['usage-mixte', 'Usage mixte'], ['renove', 'Neuf ou rénové'], ['calme', 'Calme absolu'],
+        ].map(([v, l]) => ({ v, l })), 'features', true, 'chips') + '<p class="as-help">Nous classons les biens selon ces critères, sans exclure ceux qui n\'en remplissent qu\'une partie.</p>',
+        `${backBtn('q5')}<div class="right"><button type="button" class="btn btn-ghost btn-sm" data-skip>Passer</button><button type="button" class="btn btn-primary btn-sm" data-next>Continuer</button></div>`);
+        wireBack(f);
+        const go = () => { const sel = Array.from(f.querySelectorAll<HTMLInputElement>('input[name=features]:checked')); answers.features = sel.map((i) => i.value); commit(f, sel.map((i) => i.closest('label')!.querySelector('strong')!.textContent!).join(', ') || 'Pas de critère particulier', 'q7'); };
+        f.querySelector('[data-next]')!.addEventListener('click', go);
+        f.querySelector('[data-skip]')!.addEventListener('click', () => { answers.features = []; commit(f, 'Pas de critère particulier', 'q7'); });
+        break;
+      }
+      case 'q7': {
+        const f = question('Dans quel délai souhaitez-vous concrétiser ?', options([['immediat', 'Dès que possible'], ['3-mois', 'Dans les 3 mois'], ['6-12-mois', 'Dans l\'année'], ['veille', 'Je me renseigne']].map(([v, l]) => ({ v, l })), 'timeline', false, 'chips cols-1'), backBtn('q6'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.timeline = (e.target as HTMLInputElement).value; commit(f, labelOf(f), 'q8'); });
+        break;
+      }
+      case 'q8': {
+        const f = document.createElement('fieldset');
+        f.innerHTML = `<legend>Souhaitez-vous que nous vous envoyions une sélection personnalisée ?</legend><p class="as-help" style="margin-bottom:10px">C'est facultatif : vos résultats s'affichent dans tous les cas.</p>
+          <form class="as-form" data-contact novalidate>
+            <div class="field"><label for="as-name">Prénom et nom</label><input id="as-name" name="name" class="input" autocomplete="name" required></div>
+            <div class="field"><label for="as-email">E-mail</label><input id="as-email" name="email" type="email" class="input" autocomplete="email" required></div>
+            <div class="field"><label for="as-phone">Téléphone <span class="muted">(facultatif)</span></label><input id="as-phone" name="phone" type="tel" class="input" autocomplete="tel" placeholder="+377"></div>
+            <div class="cluster" role="group" aria-label="Préférence de contact">${['E-mail', 'Téléphone', 'WhatsApp'].map((p, i) => `<label class="chip"><input type="radio" name="pref" value="${p}" ${i === 0 ? 'checked' : ''}>${p}</label>`).join('')}</div>
+            <div class="cluster" role="group" aria-label="Langue">${['FR', 'EN', 'RU', 'IT'].map((p, i) => `<label class="chip"><input type="radio" name="lang" value="${p}" ${i === 0 ? 'checked' : ''}>${p}</label>`).join('')}</div>
+            <label class="checkbox"><input type="checkbox" name="consent" required><span>J'accepte que Groupe SMIR utilise ces informations pour me proposer des biens et me contacter. Conservation 3 ans, aucun transfert à des tiers. <a href="/mentions-legales/#confidentialite">Politique de confidentialité</a>.</span></label>
+            <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+            <p class="error-msg" data-err hidden></p>
+            <button type="submit" class="btn btn-primary btn-block">Recevoir ma sélection</button>
+            <button type="button" class="btn btn-ghost btn-block" data-skip>Voir les résultats sans laisser mes coordonnées</button>
+          </form>`;
+        body.append(f); scrollEnd();
+        const form = f.querySelector('form')!;
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(form); const err = f.querySelector('[data-err]') as HTMLElement;
+          if (fd.get('website')) return;
+          if (!String(fd.get('name')).trim() || !/.+@.+\..+/.test(String(fd.get('email')))) { err.textContent = 'Merci d\'indiquer votre nom et un e-mail valide.'; err.hidden = false; (form.querySelector('[name=name]') as HTMLElement).focus(); return; }
+          if (!fd.get('consent')) { err.textContent = 'Votre accord est nécessaire pour recevoir la sélection.'; err.hidden = false; return; }
+          answers.contact = { name: String(fd.get('name')), email: String(fd.get('email')) };
+          // Point d'extension : envoyer `answers` à votre CRM / endpoint ici.
+          document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'assistant', answers } }));
+          f.remove();
+          answer(`Sélection demandée pour ${answers.contact.name}`, 'q8');
+          msg(`Merci, ${esc(answers.contact.name.split(' ')[0])}. Votre sélection vous sera envoyée aujourd'hui et un conseiller pourra vous appeler si vous l'avez souhaité.`);
+          step = 'results'; render();
+        });
+        f.querySelector('[data-skip]')!.addEventListener('click', () => { f.remove(); answer('Voir les résultats', 'q8'); step = 'results'; render(); });
+        break;
+      }
+      case 'results': renderResults(); break;
+      case 'v1': {
+        msg('Merci. Pour un propriétaire, le plus utile est une estimation argumentée par un conseiller — nous ne donnons pas de prix automatique. Trois questions pour préparer votre rappel.');
+        const f = question('Que souhaitez-vous faire ?', options([['vendre', 'Vendre'], ['louer', 'Mettre en location'], ['gerer', 'Confier la gestion'], ['valeur', 'Simplement connaître la valeur']].map(([v, l]) => ({ v, l })), 'vaction', false, 'chips cols-1'), backBtn('q2'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.seller = { ...(answers.seller ?? {}), action: (e.target as HTMLInputElement).value }; commit(f, labelOf(f), 'v2'); });
+        break;
+      }
+      case 'v2': {
+        const f = question('Quel type de bien ?', options([['appartement', 'Appartement', 'building'], ['villa', 'Villa / Maison', 'house'], ['bureau-commerce', 'Bureau / Commerce', 'shop'], ['parking-cave', 'Parking / Cave', 'car'], ['terrain-immeuble', 'Immeuble', 'building']].map(([v, l, i]) => ({ v, l, i })), 'vtype'), backBtn('v1'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.seller = { ...(answers.seller ?? {}), type: (e.target as HTMLInputElement).value }; commit(f, labelOf(f), 'v3'); });
+        break;
+      }
+      case 'v3': {
+        const opts = districtsData.map((d) => ({ v: d.slug, l: d.name })); opts.push({ v: 'cote-d-azur', l: 'Côte d\'Azur' });
+        const f = question('Dans quel quartier ?', options(opts, 'vdistrict', false, 'chips'), backBtn('v2'));
+        wireBack(f);
+        f.addEventListener('change', (e) => { answers.seller = { ...(answers.seller ?? {}), district: (e.target as HTMLInputElement).value }; commit(f, labelOf(f), 'vend'); });
+        break;
+      }
+      case 'vend': {
+        const s = answers.seller ?? {};
+        const q = new URLSearchParams({ projet: s.action ?? 'vendre', type: s.type ?? '', quartier: s.district ?? '' });
+        const el = document.createElement('div'); el.className = 'as-form';
+        el.innerHTML = `<p><strong>Nous avons de quoi commencer.</strong> Terminez votre demande en 2 minutes : un conseiller vous rappelle sous 24 h ouvrées.</p>
+          <a class="btn btn-primary btn-block" href="/estimation/?${q}">Continuer vers l'estimation →</a>
+          <a class="btn btn-ghost btn-block" href="/contact/?objet=vendre">Plutôt être rappelé maintenant</a>`;
+        body.append(el); scrollEnd();
+        break;
+      }
+    }
+  }
+  function labelOf(f: HTMLElement) { return (f.querySelector('input:checked') as HTMLInputElement)?.closest('label')?.querySelector('strong')?.textContent ?? ''; }
+  function labelOfName(f: HTMLElement, n: string) { const i = f.querySelector(`input[name=${n}]:checked`) as HTMLInputElement | null; return i && i.value !== '' ? i.closest('label')!.querySelector('strong')!.textContent! : ''; }
+  function commit(f: HTMLElement, label: string, next: Step) { const cur = step; f.remove(); answer(label, cur); step = next; render(); }
+
+  /** Rejoue le fil des réponses déjà données (après « Modifier » ou « Retour »). */
+  function replayAnswers() {
+    const idx = ORDER.indexOf(step);
+    const a = answers;
+    const lines: Array<[Step, string | undefined]> = [
+      ['q1', a.family ? ({ appartement: 'Appartement', villa: 'Villa / Maison', 'bureau-commerce': 'Bureau / Commerce', 'parking-cave': 'Parking / Cave', indecis: 'Je ne sais pas encore' } as any)[a.family] : undefined],
+      ['q2', a.project ? ({ habiter: 'Acheter pour y vivre', investir: 'Investir', louer: 'Louer', vendre: 'Vendre, louer ou faire gérer mon bien' } as any)[a.project] : undefined],
+      ['q3', a.budget !== undefined ? budgetLabel() : undefined],
+      ['q4', a.rooms !== undefined || a.surface !== undefined ? [a.rooms ? (a.rooms === '1' ? 'Studio' : `${a.rooms} pièces${a.rooms === '5' ? ' et plus' : ''}`) : '', a.surface ? `≥ ${a.surface} m²` : ''].filter(Boolean).join(' · ') || 'Peu importe' : undefined],
+      ['q5', a.districts !== undefined ? (a.districts.length ? a.districts.map((d) => districtsData.find((x) => x.slug === d)?.name ?? 'Côte d\'Azur').join(', ') : 'Conseillez-moi') : undefined],
+      ['q6', a.features !== undefined ? (a.features.length ? a.features.join(', ') : 'Pas de critère particulier') : undefined],
+      ['q7', a.timeline ? ({ immediat: 'Dès que possible', '3-mois': 'Dans les 3 mois', '6-12-mois': 'Dans l\'année', veille: 'Je me renseigne' } as any)[a.timeline] : undefined],
+    ];
+    for (const [s, l] of lines) { if (ORDER.indexOf(s) < idx && l) answer(l, s); }
+  }
+  function budgetLabel() { const b = answers.budget ?? ''; if (!b) return 'Budget non précisé'; const [min, max] = b.split('-').map((x) => x ? parseInt(x, 10) : null); const loc = answers.project === 'louer'; const f = (n: number) => loc ? `${n.toLocaleString('fr-FR')} €/mois` : n >= 1e6 ? `${(n / 1e6).toLocaleString('fr-FR')} M€` : `${n.toLocaleString('fr-FR')} €`; return max ? (min ? `${f(min)} – ${f(max)}` : `Jusqu'à ${f(max)}`) : `Plus de ${f(min!)}`; }
+
+  // ───────── Critères & résultats ─────────
+  function criteria(): Criteria {
+    const a = answers; const [bmin, bmax] = (a.budget ?? '').split('-');
+    const scope = a.districts?.some((d) => d.startsWith('zone:')) ? 'cote-d-azur' : 'tous';
+    return {
+      project: a.project ?? 'habiter', transaction: a.project === 'louer' ? 'location' : 'vente',
+      family: (a.family as any) ?? 'indecis',
+      budgetMin: bmin ? parseInt(bmin, 10) : null, budgetMax: bmax ? parseInt(bmax, 10) : null,
+      minRooms: a.rooms ? parseInt(a.rooms, 10) : null, minSurface: a.surface ? parseInt(a.surface, 10) : null,
+      districts: (a.districts ?? []).filter((d) => !d.startsWith('zone:')), scope, features: a.features ?? [], timeline: (a.timeline as any) ?? undefined,
+    };
+  }
+  function countByDistrict() { const c = criteria(); c.districts = []; c.features = []; c.minRooms = null; c.minSurface = null; const out: Record<string, number> = {}; ALL.forEach((l) => { if (l.transaction !== c.transaction) return; if (c.family && c.family !== 'indecis' && l.family !== c.family && !(c.family === 'bureau-commerce' && l.mixedUse)) return; const key = l.country === 'Monaco' ? l.district : (l.country === 'France' || l.country === 'Italie') ? 'zone:cote-d-azur' : 'intl'; out[key] = (out[key] ?? 0) + 1; }); return out; }
+
+  function renderResults() {
+    const c = criteria();
+    const sk = document.createElement('div'); sk.innerHTML = '<div class="skeleton sk"></div><div class="skeleton sk" style="margin-top:12px"></div>';
+    const intro = msg(`Je compare vos critères aux ${ALL.filter((l) => l.transaction === c.transaction).length} biens disponibles…`);
+    body.append(sk);
+    setTimeout(() => {
+      sk.remove(); intro.remove();
+      const matches = findMatches(ALL, c, 5);
+      const summary = [c.family && c.family !== 'indecis' ? FAMILY_LABELS[c.family as keyof typeof FAMILY_LABELS].toLowerCase() : 'tous types de biens', answers.budget ? budgetLabel().toLowerCase() : '', c.minRooms ? (c.minRooms === 1 ? 'studio' : `${c.minRooms} pièces`) : '', c.districts?.length ? c.districts.map((d) => districtsData.find((x) => x.slug === d)?.name).join(' ou ') : '', (c.features ?? []).slice(0, 2).join(', ')].filter(Boolean).join(', ');
+      if (c.family === 'indecis' || !c.districts?.length) {
+        const adv = document.createElement('p'); adv.className = 'district-advice';
+        adv.textContent = c.transaction === 'location'
+          ? 'Avec votre projet, trois quartiers se détachent : La Condamine (vie de quartier, gare), Fontvieille (familial, bureaux), Larvotto (plage).'
+          : 'Avec votre budget et votre projet, trois quartiers se détachent : Carré d\'Or (prestige, commerces), Larvotto (plage), Fontvieille (moderne, familial).';
+        body.append(adv);
+      }
+      if (!matches.length) {
+        msg('Aucun bien ne correspond à l\'ensemble de vos critères aujourd\'hui. Voici ce que je vous propose :');
+        const el = document.createElement('div'); el.className = 'as-form';
+        el.innerHTML = `<button type="button" class="btn btn-secondary btn-block" data-widen>Élargir aux quartiers voisins</button><a class="btn btn-secondary btn-block" href="/contact/?objet=alerte">Être prévenu des nouveautés</a><a class="btn btn-primary btn-block" href="/contact/#rdv">Parler à un conseiller</a>`;
+        el.querySelector('[data-widen]')!.addEventListener('click', () => { answers.districts = []; answers.budget = ''; body.innerHTML = ''; render(true); });
+        body.append(el);
+        const near = findMatches(ALL, { ...c, districts: [], budgetMax: null, budgetMin: null }, 3);
+        if (near.length) { msg('Les plus proches de votre recherche :'); near.forEach(renderCard); }
+        scrollEnd(); return;
+      }
+      msg(`Voici les biens qui correspondent le mieux à votre recherche : ${esc(summary)}.`);
+      matches.forEach(renderCard);
+      const q = criteriaToQuery(c);
+      const token = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(c)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const total = findMatches(ALL, c, 100).length;
+      const el = document.createElement('div'); el.className = 'as-form';
+      el.innerHTML = `<a class="btn btn-primary btn-block" href="/${c.transaction === 'location' ? 'louer' : 'acheter'}/?${q}&tri=pertinence&assistant=${token}">Voir les ${total} bien${total > 1 ? 's' : ''} correspondant${total > 1 ? 's' : ''}</a>
+        <div class="cluster" style="justify-content:center"><a class="btn btn-ghost btn-sm" href="/contact/?objet=acheter&resume=${encodeURIComponent(summary)}">Prendre rendez-vous</a><a class="btn btn-ghost btn-sm" href="/contact/?objet=alerte">Créer une alerte</a><button type="button" class="btn btn-ghost btn-sm" data-edit>Modifier mes critères</button></div>`;
+      el.querySelector('[data-edit]')!.addEventListener('click', () => { step = 'q1'; body.innerHTML = ''; render(true); });
+      body.append(el); scrollEnd();
+      try { sessionStorage.setItem('smir-assistant-criteria', JSON.stringify(c)); } catch {}
+    }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 450);
+  }
+  function renderCard(m: ReturnType<typeof findMatches>[number]) {
+    const l = m.listing; const card = document.createElement('article'); card.className = 'rc';
+    const cls = m.score >= 80 ? 'hi' : m.score >= 60 ? '' : 'lo';
+    const expl = `Correspond à ${m.score} % : ${m.reasons.slice(0, 3).map((r) => r.toLowerCase()).join(', ')}${m.warnings.length ? `. ${m.warnings[0]}.` : '.'}`;
+    card.innerHTML = `<div class="media">${miniIllustration(l.illustration)}<span class="score ${cls}">${m.score} % de correspondance</span></div>
+      <div class="rc-body"><p class="price">${formatPrice(l)}</p><h3>${esc(l.title)}</h3><p class="meta">${esc(placeLabel(l))} · ${l.surface} m²${l.rooms && l.family !== 'parking-cave' ? ` · ${l.rooms === 1 ? 'Studio' : l.rooms + ' p.'}` : ''}</p>
+      <div class="why">${m.reasons.slice(0, 3).map((r) => `<span>✓ ${esc(r)}</span>`).join('')}${m.warnings.slice(0, 1).map((w) => `<span class="miss">✗ ${esc(w)}</span>`).join('')}</div>
+      <p class="explain">${esc(expl)}</p>
+      <div class="rc-actions"><a class="arrow small" href="/bien/${l.ref}/">Voir le bien</a><button type="button" class="btn-icon" data-fav="${l.ref}" aria-pressed="false" aria-label="Ajouter aux favoris"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10Z"/></svg></button></div></div>`;
+    body.append(card);
+  }
+  function miniIllustration(kind: string) {
+    const sea = ['sea-terrace', 'penthouse', 'port', 'beach', 'villa', 'hills', 'new-build', 'facade'].includes(kind);
+    return `<svg viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><rect width="160" height="90" fill="var(--ill-sky-1)"/>${sea ? '<rect y="50" width="160" height="40" fill="var(--ill-sea-1)"/><circle cx="120" cy="24" r="10" fill="var(--ill-gold-1)"/>' : '<rect width="160" height="90" fill="var(--ill-stone-1)"/>'}<rect x="20" y="${sea ? 36 : 28}" width="50" height="54" fill="var(--ill-stone-2)"/><rect x="80" y="${sea ? 44 : 40}" width="40" height="46" fill="var(--ill-light)" opacity=".9"/><path d="M0 70 H160" stroke="var(--ill-gold-1)" stroke-width="1.5"/></svg>`;
+  }
+
+  // ───────── Saisie libre ─────────
+  function applyParsed(text: string) {
+    const p = parseQuery(text);
+    const understood: string[] = [];
+    if (p.seller) { answers.project = 'vendre'; step = 'v1'; body.innerHTML = ''; msg(`J'ai compris : vous êtes propriétaire.`); render(true); return; }
+    if (p.family) { answers.family = p.family; understood.push((FAMILY_LABELS as any)[p.family]?.toLowerCase() ?? p.family); }
+    if (p.project) { answers.project = p.project; understood.push(p.project === 'louer' ? 'en location' : p.project === 'investir' ? 'investissement' : 'achat'); }
+    if (p.budgetMax) { const loc = (answers.project ?? p.project) === 'louer'; answers.budget = `0-${p.budgetMax}`; understood.push(loc ? `jusqu'à ${p.budgetMax.toLocaleString('fr-FR')} €/mois` : `moins de ${p.budgetMax >= 1e6 ? (p.budgetMax / 1e6).toLocaleString('fr-FR') + ' M€' : p.budgetMax.toLocaleString('fr-FR') + ' €'}`); }
+    if (p.minRooms) { answers.rooms = String(Math.min(5, p.minRooms)); understood.push(p.minRooms === 1 ? 'studio' : `${p.minRooms} pièces`); }
+    if (p.minSurface) { answers.surface = String(p.minSurface >= 200 ? 200 : p.minSurface >= 100 ? 100 : p.minSurface >= 50 ? 50 : 0); understood.push(`${p.minSurface} m² minimum`); }
+    if (p.districts?.length) { answers.districts = p.districts; understood.push(p.districts.map((d) => districtsData.find((x) => x.slug === d)?.name).join(', ')); }
+    if (p.scope === 'cote-d-azur') { answers.districts = ['zone:cote-d-azur']; understood.push('Côte d\'Azur'); }
+    if (p.features?.length) { answers.features = Array.from(new Set([...(answers.features ?? []), ...p.features])); understood.push(p.features.join(', ')); }
+    if (!understood.length) { msg(`Je n'ai pas reconnu de critère dans « ${esc(text)} ». Répondez aux questions ci-dessous ou essayez : « 3 pièces vue mer Larvotto moins de 6 M€ ».`); return; }
+    // Prochaine question manquante
+    body.innerHTML = '';
+    const missing: Step = !answers.family ? 'q1' : !answers.project ? 'q2' : answers.budget === undefined ? 'q3' : (answers.rooms === undefined && answers.surface === undefined && answers.family !== 'parking-cave') ? 'q4' : answers.districts === undefined ? 'q5' : answers.features === undefined ? 'q6' : !answers.timeline ? 'q7' : 'results';
+    step = missing;
+    msg(`J'ai compris : ${esc(understood.join(', '))}. ${missing === 'results' ? 'Voici vos résultats.' : 'Je complète avec quelques questions.'}`);
+    render(true);
+  }
+  freeForm.addEventListener('submit', (e) => { e.preventDefault(); const v = freeInput.value.trim(); if (!v) return; answer(v, step); freeInput.value = ''; applyParsed(v); });
+
+  // ───────── API publique ─────────
+  (window as any).SMIR = Object.assign((window as any).SMIR ?? {}, { assistant: { open: (text?: string) => open(undefined, text), close, parse: parseQuery } });
+</script>

@@ -1,0 +1,215 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { nav, site } from '../data/site';
+import { listings, FAMILY_LABELS } from '../data/listings';
+const path = Astro.url.pathname;
+const isActive = (href: string) => href !== '/' && path.startsWith(href);
+const count = (t: 'vente' | 'location', pred: (l: any) => boolean = () => true) => listings.filter((l) => l.transaction === t && pred(l)).length;
+const families = Object.keys(FAMILY_LABELS) as Array<keyof typeof FAMILY_LABELS>;
+const quick = {
+  acheter: { base: '/acheter/', total: count('vente'), monaco: count('vente', (l) => l.country === 'Monaco'), cda: count('vente', (l) => l.country === 'France' || l.country === 'Italie'), intl: count('vente', (l) => !['Monaco', 'France', 'Italie'].includes(l.country)) },
+  louer: { base: '/louer/', total: count('location'), monaco: count('location', (l) => l.country === 'Monaco'), cda: count('location', (l) => l.country === 'France' || l.country === 'Italie'), intl: count('location', (l) => !['Monaco', 'France', 'Italie'].includes(l.country)) },
+};
+---
+<header class="site-header" id="site-header">
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <div class="container-wide header-inner">
+    <Logo class="hide-mobile" />
+    <Logo compact class="hide-desktop" />
+
+    <nav class="nav-desktop hide-mobile" aria-label="Navigation principale">
+      <ul role="list">
+        {nav.map((item) => (
+          <li class={item.menu ? 'has-menu' : ''}>
+            <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} aria-haspopup={item.menu ? 'true' : undefined} aria-expanded={item.menu ? 'false' : undefined}>{item.label}</a>
+            {item.menu && (
+              <div class="quick-menu" role="group" aria-label={`Liens rapides — ${item.label}`}>
+                <div class="qm-col">
+                  <p class="eyebrow">Par famille</p>
+                  <ul role="list">
+                    {families.map((f) => (
+                      <li><a href={`${quick[item.menu as 'acheter' | 'louer'].base}?famille=${f}`}>{FAMILY_LABELS[f]}</a></li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="qm-col">
+                  <p class="eyebrow">Par périmètre</p>
+                  <ul role="list">
+                    <li><a href={`${quick[item.menu as 'acheter' | 'louer'].base}?zone=monaco`}>Monaco <span class="muted">({quick[item.menu as 'acheter' | 'louer'].monaco})</span></a></li>
+                    <li><a href={`${quick[item.menu as 'acheter' | 'louer'].base}?zone=cote-d-azur`}>Côte d'Azur <span class="muted">({quick[item.menu as 'acheter' | 'louer'].cda})</span></a></li>
+                    <li><a href={`${quick[item.menu as 'acheter' | 'louer'].base}?zone=international`}>International <span class="muted">({quick[item.menu as 'acheter' | 'louer'].intl})</span></a></li>
+                    <li><a href={quick[item.menu as 'acheter' | 'louer'].base} class="arrow">Voir tout ({quick[item.menu as 'acheter' | 'louer'].total} biens)</a></li>
+                  </ul>
+                </div>
+                <button type="button" class="qm-foot" data-open-assistant>Vous ne savez pas par où commencer ? <strong>Laissez-vous guider →</strong></button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href="/favoris/" class="btn-icon hide-mobile" aria-label="Mes favoris" data-fav-count><Icon name="heart" /><span class="fav-badge" hidden>0</span></a>
+      <div class="lang hide-mobile">
+        <label class="sr-only" for="lang-select">Langue</label>
+        <select id="lang-select" class="lang-select" aria-label="Langue">
+          {site.languages.map((l) => <option value={l.code} selected={l.code === 'fr'}>{l.code.toUpperCase()}</option>)}
+        </select>
+      </div>
+      <button type="button" class="btn-icon theme-toggle" data-theme-toggle aria-label="Basculer le thème clair / sombre" title="Thème">
+        <span class="icon-sun"><Icon name="sun" /></span><span class="icon-moon"><Icon name="moon" /></span>
+      </button>
+      <a href="/contact/" class="btn btn-primary btn-sm hide-mobile">Contact</a>
+      <button type="button" class="btn-icon hide-desktop" data-open-drawer aria-controls="drawer" aria-expanded="false" aria-label="Ouvrir le menu"><Icon name="menu" /></button>
+    </div>
+  </div>
+</header>
+
+<!-- Drawer mobile -->
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-backdrop" data-close-drawer></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="drawer-head">
+      <Logo compact />
+      <button type="button" class="btn-icon" data-close-drawer aria-label="Fermer le menu"><Icon name="close" /></button>
+    </div>
+    <nav aria-label="Navigation mobile">
+      <ul role="list" class="drawer-nav">
+        {nav.map((item) => <li><a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a></li>)}
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="drawer-group">
+      <p class="eyebrow">Pratique</p>
+      <div class="cluster">
+        <a href="/favoris/" class="chip"><Icon name="heart" size={16} /> Favoris</a>
+        <button type="button" class="chip" data-theme-toggle><Icon name="moon" size={16} /> Thème</button>
+      </div>
+      <div class="cluster" role="group" aria-label="Langue">
+        {site.languages.map((l) => <button type="button" class="chip" aria-pressed={l.code === 'fr' ? 'true' : 'false'}>{l.code.toUpperCase()}</button>)}
+      </div>
+    </div>
+    <div class="drawer-group drawer-contact small">
+      <p><strong>{site.address.line1}</strong><br />{site.address.line2}</p>
+      <p><a href={site.phone.href}>{site.phone.display}</a> · <a href={site.whatsapp.href} rel="noopener">WhatsApp</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom bar mobile -->
+<nav class="bottombar hide-desktop" aria-label="Actions rapides">
+  <a href="/acheter/" aria-current={isActive('/acheter/') ? 'page' : undefined}><Icon name="home" /><span>Acheter</span></a>
+  <a href="/louer/" aria-current={isActive('/louer/') ? 'page' : undefined}><Icon name="key" /><span>Louer</span></a>
+  <button type="button" class="bb-assistant" data-open-assistant aria-haspopup="dialog"><span class="bb-orb"><Icon name="sparkles" /></span><span>Assistant</span></button>
+  <a href="/estimation/" aria-current={isActive('/estimation/') ? 'page' : undefined}><Icon name="ruler" /><span>Estimer</span></a>
+  <a href="/contact/" aria-current={isActive('/contact/') ? 'page' : undefined}><Icon name="phone" /><span>Contact</span></a>
+</nav>
+
+<style>
+  .site-header { position: sticky; top: 0; z-index: var(--z-nav); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color var(--dur-base); }
+  .site-header.is-scrolled { border-bottom-color: var(--border); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-block-size: var(--nav-h); }
+  .nav-desktop > ul { display: flex; gap: 4px; }
+  .nav-desktop li { position: relative; }
+  .nav-desktop > ul > li > a { display: inline-flex; align-items: center; min-block-size: 44px; padding: 8px 12px; font-size: 0.9375rem; font-weight: 500; color: var(--text); text-decoration: none; position: relative; }
+  .nav-desktop > ul > li > a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 6px; block-size: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--dur-fast) var(--ease-out); }
+  .nav-desktop > ul > li > a:hover::after, .nav-desktop > ul > li > a:focus-visible::after { transform: scaleX(1); }
+  .nav-desktop > ul > li > a[aria-current="page"]::after { transform: scaleX(1); background: var(--primary); }
+  .quick-menu { position: absolute; top: calc(100% + 4px); left: 0; inline-size: 560px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease-out), visibility 0s linear var(--dur-fast); }
+  .has-menu:hover .quick-menu, .has-menu:focus-within .quick-menu, .has-menu.is-open .quick-menu { opacity: 1; visibility: visible; transform: none; transition-delay: 120ms, 120ms, 0s; }
+  .qm-col ul { display: grid; gap: 2px; margin-top: 10px; }
+  .qm-col a { display: block; padding: 8px 10px; margin-inline: -10px; border-radius: var(--radius-sm); color: var(--text); text-decoration: none; font-size: 0.9375rem; }
+  .qm-col a:hover { background: var(--bg-2); }
+  .qm-foot { grid-column: 1 / -1; text-align: left; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--primary-tint); color: var(--text); font-size: var(--fs-small); }
+  .qm-foot strong { color: var(--primary); }
+  .header-actions { display: flex; align-items: center; gap: 4px; }
+  .lang-select { appearance: none; border: 0; background: transparent; font-weight: 600; font-size: var(--fs-small); padding: 10px 8px; cursor: pointer; border-radius: var(--radius-sm); }
+  .lang-select:hover { background: var(--bg-2); }
+  .theme-toggle .icon-moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: none; } :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: block; } }
+  [data-fav-count] { position: relative; }
+  .fav-badge { position: absolute; top: 4px; right: 2px; min-inline-size: 18px; block-size: 18px; padding: 0 5px; border-radius: var(--radius-full); background: var(--primary-solid); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+
+  /* Drawer */
+  .drawer { position: fixed; inset: 0; z-index: var(--z-modal); }
+  .drawer-backdrop { position: absolute; inset: 0; background: var(--overlay); animation: fade var(--dur-slow) var(--ease-out); }
+  .drawer-panel { position: absolute; inset-block: 0; right: 0; inline-size: min(100%, 400px); background: var(--bg); display: grid; align-content: start; gap: var(--space-6); padding: var(--space-4) var(--space-5) var(--space-8); overflow-y: auto; animation: slideIn var(--dur-slow) var(--ease-out); }
+  .drawer-head { display: flex; justify-content: space-between; align-items: center; min-block-size: var(--nav-h); }
+  .drawer-nav { display: grid; gap: 4px; }
+  .drawer-nav a { display: block; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 500; color: var(--text); text-decoration: none; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .drawer-nav a[aria-current="page"] { color: var(--primary); }
+  .drawer-group { display: grid; gap: var(--space-3); }
+  .drawer-contact { color: var(--text-2); }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes slideIn { from { transform: translateX(100%); } }
+
+  /* Bottom bar */
+  .bottombar { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-fab); display: grid; grid-template-columns: repeat(5, 1fr); block-size: calc(var(--bottombar-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--surface); border-top: 1px solid var(--border); transition: transform var(--dur-base) var(--ease-in-out); }
+  .bottombar.is-hidden { transform: translateY(110%); }
+  .bottombar > a, .bottombar > button { display: grid; justify-items: center; align-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--text-2); text-decoration: none; position: relative; }
+  .bottombar > a svg { inline-size: 24px; block-size: 24px; }
+  .bottombar > a[aria-current="page"] { color: var(--primary); }
+  .bottombar > a[aria-current="page"]::after { content: ""; inline-size: 4px; block-size: 4px; border-radius: 50%; background: var(--primary); position: absolute; bottom: 4px; }
+  .bb-assistant { color: var(--primary) !important; }
+  .bb-orb { display: grid; place-items: center; inline-size: 52px; block-size: 52px; border-radius: 50%; background: var(--primary-solid); color: #fff; margin-top: -24px; box-shadow: var(--shadow-md), 0 0 0 4px var(--bg); }
+  .bb-orb svg { inline-size: 24px; block-size: 24px; }
+  @media (min-width: 1024px) { .bottombar { display: none; } }
+</style>
+
+<script>
+  // Header : bordure au scroll + menus rapides clavier + drawer + bottom bar auto-hide + thème.
+  const header = document.getElementById('site-header');
+  const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
+  onScroll(); addEventListener('scroll', onScroll, { passive: true });
+
+  document.querySelectorAll('.has-menu > a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const li = a.parentElement!;
+      if (!li.classList.contains('is-open') && matchMedia('(hover: none)').matches) { e.preventDefault(); li.classList.add('is-open'); a.setAttribute('aria-expanded', 'true'); }
+    });
+    a.addEventListener('keydown', (ev) => { const e = ev as KeyboardEvent;
+      if (e.key === 'ArrowDown') { e.preventDefault(); (a.parentElement!.querySelector('.quick-menu a') as HTMLElement)?.focus(); }
+    });
+  });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.has-menu.is-open').forEach((li) => li.classList.remove('is-open')); });
+
+  const drawer = document.getElementById('drawer')!;
+  const openBtn = document.querySelector('[data-open-drawer]') as HTMLButtonElement | null;
+  const main = document.getElementById('main');
+  function setDrawer(open: boolean) {
+    drawer.hidden = !open;
+    openBtn?.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (main) (main as any).inert = open;
+    if (open) (drawer.querySelector('[data-close-drawer].btn-icon') as HTMLElement)?.focus(); else openBtn?.focus();
+  }
+  openBtn?.addEventListener('click', () => setDrawer(true));
+  drawer.querySelectorAll('[data-close-drawer]').forEach((el) => el.addEventListener('click', () => setDrawer(false)));
+  drawer.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false); });
+
+  const bar = document.querySelector('.bottombar');
+  let lastY = window.scrollY;
+  addEventListener('scroll', () => {
+    const y = window.scrollY; const down = y > lastY && y > 80;
+    const atEnd = innerHeight + y >= document.body.scrollHeight - 40;
+    bar?.classList.toggle('is-hidden', down && !atEnd); lastY = y;
+  }, { passive: true });
+
+  document.querySelectorAll('[data-theme-toggle]').forEach((b) => b.addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next; try { localStorage.setItem('smir-theme', next); } catch {}
+  }));
+
+  // Compteur de favoris
+  try {
+    const favs = JSON.parse(localStorage.getItem('smir-favs') || '[]');
+    const badge = document.querySelector('.fav-badge') as HTMLElement | null;
+    if (badge && favs.length) { badge.textContent = String(favs.length); badge.hidden = false; }
+  } catch {}
+</script>

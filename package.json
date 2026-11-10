@@ -1,0 +1,21 @@
+{
+  "name": "immo-mvp-2026",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MVP site immobilier 2026 — refonte moderne inspirée de groupesmir.com avec assistant IA de recherche guidée",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.2.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^5.9.3"
+  }
+}

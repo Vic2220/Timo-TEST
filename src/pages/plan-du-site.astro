@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { listings } from '../data/listings';
+import districts from '../data/districts.json';
+---
+<Base title="Plan du site">
+  <section class="section-tight"><div class="container-narrow prose">
+    <h1>Plan du site</h1>
+    <h2>Pages</h2>
+    <ul><li><a href="/">Accueil</a></li><li><a href="/acheter/">Acheter</a></li><li><a href="/louer/">Louer</a></li><li><a href="/estimation/">Estimer mon bien</a></li><li><a href="/services/">Services</a></li><li><a href="/monaco/">Vivre à Monaco</a></li><li><a href="/groupe/">Le Groupe</a></li><li><a href="/contact/">Contact</a></li><li><a href="/favoris/">Favoris</a></li><li><a href="/mentions-legales/">Mentions légales</a></li></ul>
+    <h2>Quartiers</h2>
+    <ul>{districts.map((d) => <li><a href={`/monaco/quartiers/${d.slug}/`}>{d.name}</a></li>)}</ul>
+    <h2>Biens</h2>
+    <ul>{listings.map((l) => <li><a href={`/bien/${l.ref}/`}>{l.ref} — {l.title}</a></li>)}</ul>
+  </div></section>
+</Base>

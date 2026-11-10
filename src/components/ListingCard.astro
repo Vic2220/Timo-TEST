@@ -1,0 +1,75 @@
+---
+import type { Listing } from '../data/listings';
+import { FEATURE_LABELS } from '../data/listings';
+import { formatPrice, placeLabel, pricePerSqm, roomsLabel } from '../lib/format';
+import Illustration from './Illustration.astro';
+import Icon from './Icon.astro';
+
+interface Props { listing: Listing; eager?: boolean; showDescription?: boolean; class?: string }
+const { listing: l, showDescription = false, class: cls = '' } = Astro.props;
+const TAG_ORDER = ['vue-mer', 'terrasse', 'parking', 'concierge', 'piscine', 'meuble', 'usage-mixte', 'renove', 'neuf', 'jardin'];
+const tags = TAG_ORDER.filter((t) => l.features.includes(t)).slice(0, 3);
+const seed = parseInt(l.ref.replace(/\D/g, ''), 10) || 1;
+const badge = l.featured ? { label: 'À la une', cls: '' } : l.isNew ? { label: 'Nouveau', cls: 'badge-primary' } : l.transaction === 'location' ? { label: 'Location', cls: 'badge-primary' } : null;
+const ppsqm = pricePerSqm(l);
+const href = `/bien/${l.ref}/`;
+---
+<article class={`property-card card card-hover ${cls}`} data-ref={l.ref} data-family={l.family} data-transaction={l.transaction}
+  data-price={l.price ?? ''} data-surface={l.surface} data-rooms={l.rooms} data-district={l.district} data-country={l.country}
+  data-features={l.features.join(',')} data-date={l.date} data-featured={l.featured ? '1' : '0'} data-new={l.isNew ? '1' : '0'}>
+  <div class="media media-4x3 pc-media">
+    <Illustration kind={l.illustration} seed={seed} title={`${l.title} — ${placeLabel(l)} (visuel illustratif)`} />
+    {badge && <span class={`badge ${badge.cls} pc-badge`}>{badge.label}</span>}
+    <button type="button" class="fav" data-fav={l.ref} aria-pressed="false" aria-label="Ajouter aux favoris"><Icon name="heart" size={20} /></button>
+  </div>
+  <div class="pc-body">
+    <div class="pc-price-row">
+      <p class={`price ${l.price == null ? 'on-request' : ''}`}>{l.price == null ? 'Prix sur demande' : (
+        <>{formatPrice({ price: l.price, transaction: 'vente' })}{l.transaction === 'location' && <span class="per"> /mois</span>}</>
+      )}</p>
+      <span class="ref">{l.ref}</span>
+    </div>
+    {ppsqm && <p class="ppsqm">soit {ppsqm}</p>}
+    <h3 class="pc-title"><a href={href} class="title">{l.title}</a></h3>
+    <p class="pc-place"><Icon name="pin" size={16} /> {placeLabel(l)}</p>
+    <p class="specs">
+      <span><Icon name="area" /> {l.surface} m²</span>
+      {l.family !== 'parking-cave' && <span><Icon name="door" /> {roomsLabel(l)}</span>}
+      {l.bedrooms > 0 && <span><Icon name="bed" /> {l.bedrooms} ch.</span>}
+      {l.parkings > 0 && <span><Icon name="car" /> {l.parkings} pk</span>}
+      {l.family === 'bureau-commerce' && l.floor && <span>{l.floor}</span>}
+    </p>
+    {showDescription && <p class="pc-desc">{l.description}</p>}
+    {tags.length > 0 && <p class="pc-tags">{tags.map((t) => <span>{FEATURE_LABELS[t]}</span>)}</p>}
+    {showDescription && <a href={href} class="arrow pc-more">Voir le bien</a>}
+  </div>
+</article>
+<style>
+  .property-card { position: relative; overflow: clip; display: grid; grid-template-rows: auto 1fr; container-type: inline-size; }
+  .property-card:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .pc-badge { position: absolute; top: 12px; left: 12px; z-index: 1; }
+  .fav { position: absolute; top: 10px; right: 10px; z-index: 2; inline-size: 40px; block-size: 40px; border-radius: 50%; background: color-mix(in srgb, var(--surface) 90%, transparent); color: var(--text); display: grid; place-items: center; transition: transform var(--dur-base) var(--ease-spring), color var(--dur-fast); }
+  .fav[aria-pressed="true"] { color: var(--error); }
+  .fav[aria-pressed="true"] svg { fill: currentColor; }
+  .fav:active { transform: scale(1.15); }
+  .pc-body { padding: 16px; display: grid; gap: 6px; align-content: start; }
+  .pc-price-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .price.on-request { font-size: 1.125rem; font-weight: 600; color: var(--text-2); }
+  .per { font-size: var(--fs-small); font-weight: 500; color: var(--text-2); }
+  .ref { font-size: var(--fs-caption); color: var(--text-3); font-weight: 600; letter-spacing: 0.04em; }
+  .ppsqm { font-size: var(--fs-caption); color: var(--text-2); letter-spacing: 0; text-transform: none; margin-top: -4px; }
+  .pc-title { font-size: 1.375rem; line-height: 1.2; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pc-title a { color: inherit; text-decoration: none; }
+  .pc-title a::after { content: ""; position: absolute; inset: 0; }
+  .pc-place { display: flex; align-items: center; gap: 5px; font-size: var(--fs-small); color: var(--text-2); }
+  .pc-place svg { color: var(--accent); flex: none; }
+  .pc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .pc-tags span { font-size: var(--fs-caption); font-weight: 600; letter-spacing: 0; text-transform: none; background: var(--bg-2); color: var(--text-2); padding: 4px 8px; border-radius: var(--radius-xs); }
+  .pc-desc { font-size: var(--fs-small); color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 4px; }
+  .pc-more { position: relative; z-index: 1; font-size: var(--fs-small); margin-top: 6px; justify-self: end; }
+  /* Vue liste (conteneur large) */
+  :global(.view-list) .property-card { grid-template-columns: 40% 1fr; grid-template-rows: none; }
+  :global(.view-list) .pc-media { block-size: 100%; aspect-ratio: auto; min-block-size: 200px; }
+  :global(.view-list) .pc-body { padding: 20px; }
+  @media (max-width: 559px) { :global(.view-list) .property-card { grid-template-columns: 1fr; } :global(.view-list) .pc-media { aspect-ratio: 4 / 3; } }
+</style>

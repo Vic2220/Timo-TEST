@@ -1,0 +1,14 @@
+# Groupe SMIR — conseil & investissement immobilier à Monaco (refonte 2026, démo)
+> Agence familiale indépendante née de l'Agence Lorenzi (1925) et de Monte Carlo Immobilier (1956), membre de la Chambre Immobilière Monégasque. Vente, location, gestion et estimation de biens à Monaco, sur la Côte d'Azur et à l'international.
+
+## Pages clés
+- /ventes/ : biens à vendre à Monaco (appartements, villas, bureaux, parkings)
+- /locations/ : biens à louer à Monaco
+- /international/ : Côte d'Azur, Italie, Saint-Barthélemy, Miami
+- /services/achat/ : procédure et frais d'acquisition à Monaco (6 % notaire, 3 % + TVA agence, acompte 10 %)
+- /estimation/ : estimation gratuite d'un bien
+- /vivre-a-monaco/ : fiscalité, résidence, quartiers
+- /contact/
+
+## Notes
+Les biens présentés dans cette démo sont fictifs.

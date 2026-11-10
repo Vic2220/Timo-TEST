@@ -1,0 +1,335 @@
+---
+/** Page catalogue (Acheter / Louer) : filtres synchronisés avec l'URL, tri, vues, « charger plus ». */
+import ListingCard from './ListingCard.astro';
+import Icon from './Icon.astro';
+import { listings, FAMILY_LABELS, FEATURE_LABELS, type Transaction } from '../data/listings';
+import districts from '../data/districts.json';
+interface Props { transaction: Transaction }
+const { transaction } = Astro.props;
+const items = listings.filter((l) => l.transaction === transaction).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.date.localeCompare(a.date));
+const isLoc = transaction === 'location';
+const count = (pred: (l: typeof items[number]) => boolean) => items.filter(pred).length;
+const zones = [
+  { v: 'monaco', l: 'Monaco', n: count((l) => l.country === 'Monaco') },
+  { v: 'cote-d-azur', l: "Côte d'Azur", n: count((l) => l.country === 'France' || l.country === 'Italie') },
+  { v: 'international', l: 'International', n: count((l) => !['Monaco', 'France', 'Italie'].includes(l.country)) },
+];
+const budgetShortcuts = isLoc
+  ? [['', '3000', '< 3 000 €'], ['3000', '8000', '3 – 8 k€'], ['8000', '15000', '8 – 15 k€'], ['15000', '', '> 15 k€']]
+  : [['', '2000000', '< 2 M€'], ['2000000', '5000000', '2 – 5 M€'], ['5000000', '10000000', '5 – 10 M€'], ['10000000', '', '> 10 M€']];
+const CRITERIA = ['vue-mer', 'terrasse', 'parking', 'concierge', 'piscine', 'meuble', 'usage-mixte', 'renove', 'cave'];
+const title = isLoc ? 'biens à louer' : 'biens à vendre';
+const families = Object.keys(FAMILY_LABELS) as Array<keyof typeof FAMILY_LABELS>;
+---
+<section class="catalog" data-catalog data-transaction={transaction}>
+  <div class="container">
+    <nav class="crumbs small" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <span aria-current="page">{isLoc ? 'Louer' : 'Acheter'}</span></nav>
+    <div class="cat-head">
+      <h1><span data-count-h1>{items.length}</span> <span data-title-h1>{title}</span></h1>
+      <p class="lead">{isLoc ? 'Loyers affichés hors charges. Dépôt de garantie et honoraires détaillés sur chaque fiche.' : 'Prix affichés honoraires d\'agence inclus. Frais d\'acquisition détaillés sur chaque fiche.'}</p>
+      <div class="seg zone-seg" role="radiogroup" aria-label="Périmètre">
+        <label><input type="radio" name="zone-top" value="" checked data-zone-radio /><span>Tous ({items.length})</span></label>
+        {zones.map((z) => <label><input type="radio" name="zone-top" value={z.v} data-zone-radio /><span>{z.l} ({z.n})</span></label>)}
+      </div>
+      <p class="notice assistant-notice" data-assistant-notice hidden><Icon name="sparkles" size={16} /> Résultats triés selon votre recherche guidée. <button type="button" class="chip-remove-link" data-clear-assistant>Retirer</button></p>
+    </div>
+
+    <div class="toolbar hide-desktop">
+      <button type="button" class="btn btn-secondary btn-sm" data-open-filters aria-controls="filters" aria-expanded="false"><Icon name="filter" size={18} /> Filtres <span data-filter-count></span></button>
+      <label class="sort-mobile"><span class="sr-only">Trier</span><select class="select" data-sort-mobile><option value="pertinence">Pertinence</option><option value="prix-asc">Prix croissant</option><option value="prix-desc">Prix décroissant</option><option value="surface-desc">Surface</option><option value="date">Nouveautés</option></select></label>
+    </div>
+
+    <div class="cat-layout">
+      <aside class="filters" id="filters">
+        <div class="filters-backdrop" data-close-filters></div>
+        <form class="filters-panel" data-filters aria-label="Filtres">
+          <div class="filters-head hide-desktop"><span class="handle" aria-hidden="true"></span><strong>Filtres</strong><button type="button" class="btn-icon" data-close-filters aria-label="Fermer les filtres"><Icon name="close" /></button></div>
+          <div class="filters-body">
+            <fieldset class="hide-desktop"><legend>Périmètre</legend><div class="cluster">
+              <label class="chip"><input type="radio" name="zone" value="" checked />Tous</label>
+              {zones.map((z) => <label class="chip"><input type="radio" name="zone" value={z.v} />{z.l}</label>)}
+            </div></fieldset>
+            <fieldset><legend>Famille</legend><div class="stack-sm">
+              <label class="chip"><input type="radio" name="famille" value="" checked />Tous les biens ({items.length})</label>
+              {families.map((f) => <label class="chip"><input type="radio" name="famille" value={f} />{FAMILY_LABELS[f]} ({count((l) => l.family === f)})</label>)}
+            </div></fieldset>
+            <fieldset><legend>Quartier <button type="button" class="link-btn small" data-clear-group="quartier">Décocher</button></legend><div class="two-cols">
+              {districts.map((d) => <label class="checkbox"><input type="checkbox" name="quartier" value={d.slug} /><span>{d.name} <span class="muted">({count((l) => l.district === d.slug)})</span></span></label>)}
+            </div></fieldset>
+            <fieldset><legend>{isLoc ? 'Loyer mensuel' : 'Budget'}</legend>
+              <div class="minmax"><div class="affix"><input type="number" name="min" class="input" placeholder="Min" inputmode="numeric" aria-label="Budget minimum" /><span>€</span></div><div class="affix"><input type="number" name="max" class="input" placeholder="Max" inputmode="numeric" aria-label="Budget maximum" /><span>€</span></div></div>
+              <div class="cluster mt-2">{budgetShortcuts.map(([mn, mx, l]) => <button type="button" class="chip" data-budget={`${mn}|${mx}`}>{l}</button>)}</div>
+            </fieldset>
+            <fieldset><legend>Surface</legend>
+              <div class="minmax"><div class="affix"><input type="number" name="surface" class="input" placeholder="Min" inputmode="numeric" aria-label="Surface minimale" /><span>m²</span></div><div class="affix"><input type="number" name="surfacemax" class="input" placeholder="Max" inputmode="numeric" aria-label="Surface maximale" /><span>m²</span></div></div>
+            </fieldset>
+            <fieldset><legend>Pièces</legend><div class="cluster">
+              {['1', '2', '3', '4', '5'].map((n) => <label class="chip"><input type="checkbox" name="pieces" value={n} />{n === '1' ? 'Studio' : n === '5' ? '5+' : n}</label>)}
+            </div></fieldset>
+            <fieldset><legend>Critères</legend><div class="two-cols">
+              {CRITERIA.map((c) => <label class="checkbox"><input type="checkbox" name="criteres" value={c} /><span>{FEATURE_LABELS[c]}</span></label>)}
+            </div></fieldset>
+            <fieldset><legend>Référence</legend><input type="search" name="ref" class="input" placeholder="V-301" aria-label="Référence" /></fieldset>
+          </div>
+          <div class="filters-foot">
+            <button type="button" class="btn btn-ghost" data-reset>Réinitialiser</button>
+            <button type="button" class="btn btn-primary hide-desktop" data-close-filters data-apply>Voir <span data-live-count>{items.length}</span> biens</button>
+          </div>
+        </form>
+      </aside>
+
+      <div class="results">
+        <div class="results-bar">
+          <div class="active-chips" data-active-chips aria-label="Filtres actifs"></div>
+          <div class="results-tools hide-mobile">
+            <label class="sort"><span class="small muted">Trier :</span><select class="select" data-sort><option value="pertinence">Pertinence</option><option value="prix-asc">Prix croissant</option><option value="prix-desc">Prix décroissant</option><option value="surface-desc">Surface décroissante</option><option value="date">Nouveautés</option></select></label>
+            <div class="seg view-seg" role="radiogroup" aria-label="Affichage"><label><input type="radio" name="view" value="grid" checked /><span><Icon name="grid" size={18} /><span class="sr-only">Grille</span></span></label><label><input type="radio" name="view" value="list" /><span><Icon name="list" size={18} /><span class="sr-only">Liste</span></span></label></div>
+          </div>
+        </div>
+        <p class="small muted" aria-live="polite" data-results-count></p>
+        <div class="card-grid results-grid" data-grid>
+          {items.map((l, i) => <ListingCard listing={l} eager={i < 3} showDescription />)}
+        </div>
+        <div class="empty card" data-empty hidden>
+          <svg viewBox="0 0 160 100" width="160" aria-hidden="true"><path d="M20 90 V50 A60 60 0 0 1 140 50 V90" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M10 80q20-10 40 0t40 0 40 0 30 0" fill="none" stroke="var(--ill-sea-1)" stroke-width="3"/></svg>
+          <h3>Aucun bien ne correspond à ces critères pour le moment.</h3>
+          <p class="muted">Élargissez votre recherche ou laissez-nous vous prévenir dès qu'un bien correspond.</p>
+          <div class="cluster" style="justify-content:center"><a href="/contact/?objet=alerte" class="btn btn-primary">Créer une alerte</a><button type="button" class="btn btn-secondary" data-widen>Élargir aux quartiers voisins</button><button type="button" class="btn btn-ghost" data-open-assistant>Me faire conseiller</button></div>
+        </div>
+        <div class="load-more"><button type="button" class="btn btn-secondary" data-load-more hidden></button><p class="small muted" data-end hidden>Vous avez vu tous les biens.</p></div>
+        <div class="card not-found">
+          <div><h3>Laissez-vous guider</h3><p class="muted small">Quelques questions et nous classons les biens selon vos critères.</p><button type="button" class="btn btn-primary btn-sm" data-open-assistant><Icon name="sparkles" size={16} /> Ouvrir l'assistant</button></div>
+          <form class="alert-form" data-alert-form>
+            <h3>Recevoir les nouveautés</h3>
+            <p class="muted small">Nous vous écrivons uniquement lorsqu'un bien correspond à vos critères. Désinscription en un clic.</p>
+            <div class="field"><label for="alert-email" class="sr-only">E-mail</label><input id="alert-email" type="email" class="input" placeholder="votre@email.com" required /></div>
+            <label class="checkbox"><input type="checkbox" required /><span>J'accepte que Groupe SMIR me contacte au sujet de ma demande. Données conservées 3 ans, jamais cédées.</span></label>
+            <button type="submit" class="btn btn-secondary btn-sm">Créer l'alerte</button>
+            <p class="notice notice-success" hidden data-alert-ok>Alerte créée. Nous vous écrirons dès qu'un bien correspond.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .catalog { padding-block: var(--space-5) var(--section-y); }
+  .crumbs { color: var(--text-2); margin-bottom: var(--space-4); }
+  .crumbs a { color: var(--text-2); }
+  .cat-head { display: grid; gap: var(--space-4); margin-bottom: var(--space-5); }
+  .seg { display: inline-flex; flex-wrap: wrap; background: var(--bg-2); border-radius: var(--radius-sm); padding: 3px; }
+  .seg label { position: relative; }
+  .seg input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
+  .seg span { display: inline-flex; align-items: center; gap: 6px; min-block-size: 40px; padding: 0 14px; border-radius: 6px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
+  .seg input:checked + span { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); }
+  .seg input:focus-visible + span { outline: 2px solid var(--focus); }
+  .zone-seg { justify-self: start; }
+  .assistant-notice { display: flex; align-items: center; gap: 8px; }
+  .chip-remove-link { color: var(--primary); text-decoration: underline; font-weight: 600; font-size: inherit; margin-left: auto; }
+  .toolbar { position: sticky; top: var(--nav-h); z-index: var(--z-sticky); display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 0; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); margin-bottom: var(--space-4); }
+  .sort-mobile .select { min-block-size: 40px; padding-block: 6px; }
+  .cat-layout { display: grid; gap: var(--space-6); }
+  @media (min-width: 1024px) { .cat-layout { grid-template-columns: 300px 1fr; align-items: start; } }
+  /* Filtres : sidebar desktop / bottom sheet mobile */
+  @media (min-width: 1024px) { .filters { position: sticky; top: calc(var(--nav-h) + 16px); } .filters-backdrop { display: none; } .filters-panel { display: grid; gap: var(--space-5); max-block-size: calc(100dvh - var(--nav-h) - 32px); overflow-y: auto; padding-right: 4px; } }
+  @media (max-width: 1023px) {
+    .filters { position: fixed; inset: 0; z-index: var(--z-sheet); display: none; }
+    .filters.is-open { display: block; }
+    .filters-backdrop { position: absolute; inset: 0; background: var(--overlay); }
+    .filters-panel { position: absolute; inset-inline: 0; bottom: 0; max-block-size: 92dvh; background: var(--bg); border-radius: var(--radius-xl) var(--radius-xl) 0 0; display: grid; grid-template-rows: auto 1fr auto; animation: up var(--dur-slow) var(--ease-out); }
+    .filters-body { overflow-y: auto; padding: 0 20px; display: grid; gap: var(--space-5); overscroll-behavior: contain; }
+    .filters-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 12px 8px 20px; position: relative; }
+    .filters-head strong { grid-column: 2; }
+    .filters-head .btn-icon { grid-column: 3; justify-self: end; }
+    .handle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); inline-size: 36px; block-size: 4px; border-radius: 2px; background: var(--border-strong); }
+    .filters-foot { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: var(--bg); }
+  }
+  @keyframes up { from { transform: translateY(100%); } }
+  @media (min-width: 1024px) { .filters-body { display: grid; gap: var(--space-5); } .filters-foot { display: flex; } }
+  fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+  legend { font-weight: 600; font-size: var(--fs-small); margin-bottom: 8px; display: flex; justify-content: space-between; inline-size: 100%; }
+  .link-btn { color: var(--primary); text-decoration: underline; font-weight: 500; }
+  .stack-sm { display: grid; gap: 6px; }
+  .stack-sm .chip { justify-content: flex-start; border-radius: var(--radius-sm); }
+  .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  .checkbox { position: relative; }
+  .minmax { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .affix { position: relative; }
+  .affix span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: var(--fs-small); color: var(--text-2); pointer-events: none; }
+  .affix .input { padding-right: 36px; }
+  .chip.is-active { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
+  /* Résultats */
+  .results { display: grid; gap: var(--space-4); min-inline-size: 0; }
+  .results-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .active-chips { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-inline-size: 100%; }
+  @media (min-width: 1024px) { .active-chips { flex-wrap: wrap; } }
+  .active-chips:empty { display: none; }
+  .results-tools { display: flex; gap: 12px; align-items: center; margin-left: auto; }
+  .sort { display: flex; align-items: center; gap: 8px; }
+  .sort .select { min-block-size: 40px; padding-block: 6px; inline-size: auto; }
+  .view-seg span { padding: 0 10px; }
+  .results-grid.view-list { grid-template-columns: 1fr; }
+  .results-grid :global(.property-card[hidden]) { display: none; }
+  .empty { padding: var(--space-6); text-align: center; display: grid; gap: var(--space-4); justify-items: center; max-inline-size: 560px; margin-inline: auto; }
+  .load-more { display: grid; justify-items: center; gap: 8px; }
+  .load-more .btn { min-inline-size: min(100%, 320px); }
+  .not-found { display: grid; gap: var(--space-5); padding: var(--space-5); margin-top: var(--space-4); }
+  @media (min-width: 768px) { .not-found { grid-template-columns: 1fr 1fr; } }
+  .not-found > div, .alert-form { display: grid; gap: 10px; align-content: start; justify-items: start; }
+</style>
+
+<script>
+  const root = document.querySelector('[data-catalog]') as HTMLElement; if (root) init(root);
+  function init(root: HTMLElement) {
+    const grid = root.querySelector('[data-grid]') as HTMLElement;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.property-card'));
+    const form = root.querySelector('[data-filters]') as HTMLFormElement;
+    const chips = root.querySelector('[data-active-chips]') as HTMLElement;
+    const countEl = root.querySelector('[data-results-count]') as HTMLElement;
+    const h1Count = root.querySelector('[data-count-h1]') as HTMLElement;
+    const h1Title = root.querySelector('[data-title-h1]') as HTMLElement;
+    const empty = root.querySelector('[data-empty]') as HTMLElement;
+    const loadBtn = root.querySelector('[data-load-more]') as HTMLButtonElement;
+    const endEl = root.querySelector('[data-end]') as HTMLElement;
+    const sorts = Array.from(root.querySelectorAll<HTMLSelectElement>('[data-sort],[data-sort-mobile]'));
+    const liveCount = root.querySelector('[data-live-count]') as HTMLElement;
+    const filterCount = root.querySelector('[data-filter-count]') as HTMLElement;
+    const assistantNotice = root.querySelector('[data-assistant-notice]') as HTMLElement;
+    const isLoc = root.dataset.transaction === 'location';
+    const PAGE = 12; let page = 1;
+    const districtNames: Record<string, string> = {}; root.querySelectorAll<HTMLInputElement>('input[name=quartier]').forEach((i) => { districtNames[i.value] = i.parentElement!.textContent!.replace(/\(\d+\)/, '').trim(); });
+    const famNames: Record<string, string> = {}; root.querySelectorAll<HTMLInputElement>('input[name=famille]').forEach((i) => { famNames[i.value] = i.parentElement!.textContent!.replace(/\(\d+\)/, '').trim(); });
+    const critNames: Record<string, string> = {}; root.querySelectorAll<HTMLInputElement>('input[name=criteres]').forEach((i) => { critNames[i.value] = i.parentElement!.textContent!.trim(); });
+    let assistantScores: Record<string, number> | null = null;
+
+    // ── URL → formulaire
+    function fromURL() {
+      const p = new URLSearchParams(location.search);
+      const setRadio = (n: string, v: string) => { const i = form.querySelector<HTMLInputElement>(`input[name=${n}][value="${v}"]`); if (i) i.checked = true; };
+      setRadio('famille', p.get('famille') ?? ''); setRadio('zone', p.get('zone') ?? '');
+      root.querySelectorAll<HTMLInputElement>('[data-zone-radio]').forEach((r) => { r.checked = r.value === (p.get('zone') ?? ''); });
+      const q = (p.get('quartier') ?? '').split(',').filter(Boolean); form.querySelectorAll<HTMLInputElement>('input[name=quartier]').forEach((i) => { i.checked = q.includes(i.value); });
+      const c = (p.get('criteres') ?? '').split(',').filter(Boolean); form.querySelectorAll<HTMLInputElement>('input[name=criteres]').forEach((i) => { i.checked = c.includes(i.value); });
+      const pcs = (p.get('pieces') ?? '').split(',').filter(Boolean); form.querySelectorAll<HTMLInputElement>('input[name=pieces]').forEach((i) => { i.checked = pcs.includes(i.value) || (pcs.length === 1 && parseInt(pcs[0]) >= 5 && i.value === '5'); });
+      (form.elements.namedItem('min') as HTMLInputElement).value = p.get('min') ?? ''; (form.elements.namedItem('max') as HTMLInputElement).value = p.get('max') ?? '';
+      (form.elements.namedItem('surface') as HTMLInputElement).value = p.get('surface') ?? ''; (form.elements.namedItem('surfacemax') as HTMLInputElement).value = p.get('surfacemax') ?? '';
+      (form.elements.namedItem('ref') as HTMLInputElement).value = p.get('ref') ?? '';
+      sorts.forEach((s) => { s.value = p.get('tri') ?? 'pertinence'; });
+      page = parseInt(p.get('page') ?? '1', 10) || 1;
+      const tok = p.get('assistant');
+      if (tok) { try { const crit = tok.length > 1 ? JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(tok.replace(/-/g, '+').replace(/_/g, '/')), (ch) => ch.charCodeAt(0)))) : JSON.parse(sessionStorage.getItem('smir-assistant-criteria') || 'null'); if (crit) { import('../lib/match').then(({ scoreListing, MATCH_THRESHOLD }) => { import('../data/listings').then(({ listings }) => { assistantScores = {}; (window as any).__matchThreshold = MATCH_THRESHOLD; listings.forEach((l) => { assistantScores![l.ref] = scoreListing(l, crit).score; }); assistantNotice.hidden = false; apply(false); }); }); } } catch {} }
+    }
+    // ── formulaire → état
+    function state() {
+      const fd = new FormData(form);
+      return {
+        famille: String(fd.get('famille') ?? ''), zone: String(fd.get('zone') ?? ''),
+        quartier: fd.getAll('quartier').map(String), criteres: fd.getAll('criteres').map(String), pieces: fd.getAll('pieces').map(String),
+        min: Number(fd.get('min')) || 0, max: Number(fd.get('max')) || 0, surface: Number(fd.get('surface')) || 0, surfacemax: Number(fd.get('surfacemax')) || 0,
+        ref: String(fd.get('ref') ?? '').trim().toUpperCase(), tri: sorts[0].value,
+      };
+    }
+    function toURL(s: ReturnType<typeof state>) {
+      const p = new URLSearchParams();
+      if (s.famille) p.set('famille', s.famille); if (s.zone) p.set('zone', s.zone);
+      if (s.quartier.length) p.set('quartier', s.quartier.join(',')); if (s.criteres.length) p.set('criteres', s.criteres.join(','));
+      if (s.pieces.length) p.set('pieces', s.pieces.join(',')); if (s.min) p.set('min', String(s.min)); if (s.max) p.set('max', String(s.max));
+      if (s.surface) p.set('surface', String(s.surface)); if (s.surfacemax) p.set('surfacemax', String(s.surfacemax)); if (s.ref) p.set('ref', s.ref);
+      if (s.tri !== 'pertinence') p.set('tri', s.tri); if (page > 1) p.set('page', String(page)); if (assistantScores) p.set('assistant', new URLSearchParams(location.search).get('assistant') || '1');
+      history.replaceState(null, '', location.pathname + (p.toString() ? `?${p}` : ''));
+    }
+    function matches(c: HTMLElement, s: ReturnType<typeof state>) {
+      const d = c.dataset; const price = d.price ? Number(d.price) : null; const country = d.country!;
+      if (s.famille && d.family !== s.famille) return false;
+      if (s.zone === 'monaco' && country !== 'Monaco') return false;
+      if (s.zone === 'cote-d-azur' && !(country === 'France' || country === 'Italie')) return false;
+      if (s.zone === 'international' && ['Monaco', 'France', 'Italie'].includes(country)) return false;
+      if (s.quartier.length && !s.quartier.includes(d.district!)) return false;
+      if (s.min && price != null && price < s.min) return false;
+      if (s.max && price != null && price > s.max) return false;
+      if (s.surface && Number(d.surface) < s.surface) return false;
+      if (s.surfacemax && Number(d.surface) > s.surfacemax) return false;
+      if (s.pieces.length) { const r = Number(d.rooms); if (!s.pieces.some((p) => (p === '5' ? r >= 5 : r === Number(p)))) return false; }
+      if (s.criteres.length) { const f = (d.features ?? '').split(','); if (!s.criteres.every((x) => f.includes(x))) return false; }
+      if (s.ref && !d.ref!.toUpperCase().includes(s.ref)) return false;
+      if (assistantScores && (assistantScores[d.ref!] ?? 0) < ((window as any).__matchThreshold ?? 35)) return false;
+      return true;
+    }
+    function sortCards(list: HTMLElement[], tri: string) {
+      const P = (c: HTMLElement) => c.dataset.price ? Number(c.dataset.price) : Infinity;
+      const byFeat = (a: HTMLElement, b: HTMLElement) => Number(b.dataset.featured) - Number(a.dataset.featured) || b.dataset.date!.localeCompare(a.dataset.date!);
+      switch (tri) {
+        case 'prix-asc': return list.sort((a, b) => P(a) - P(b));
+        case 'prix-desc': return list.sort((a, b) => (P(b) === Infinity ? -1 : P(b)) - (P(a) === Infinity ? -1 : P(a)));
+        case 'surface-desc': return list.sort((a, b) => Number(b.dataset.surface) - Number(a.dataset.surface));
+        case 'date': return list.sort((a, b) => b.dataset.date!.localeCompare(a.dataset.date!));
+        default: return assistantScores ? list.sort((a, b) => (assistantScores![b.dataset.ref!] ?? 0) - (assistantScores![a.dataset.ref!] ?? 0) || byFeat(a, b)) : list.sort(byFeat);
+      }
+    }
+    function apply(resetPage = true) {
+      if (resetPage) page = 1;
+      const s = state(); const vis = sortCards(cards.filter((c) => matches(c, s)), s.tri);
+      cards.forEach((c) => { c.hidden = true; c.querySelector('.score-pill')?.remove(); });
+      vis.forEach((c, i) => { grid.append(c); c.hidden = i >= page * PAGE; if (assistantScores && assistantScores[c.dataset.ref!]) { const pill = document.createElement('span'); pill.className = 'badge badge-success score-pill'; pill.style.cssText = 'position:absolute;top:12px;right:56px;z-index:1'; pill.textContent = `${assistantScores[c.dataset.ref!]} %`; c.querySelector('.pc-media')!.append(pill); } });
+      const n = vis.length; const shown = Math.min(n, page * PAGE);
+      countEl.textContent = n ? `${shown} sur ${n} bien${n > 1 ? 's' : ''} affiché${shown > 1 ? 's' : ''}` : '';
+      h1Count.textContent = String(n);
+      const fam = s.famille ? famNames[s.famille].toLowerCase() : (isLoc ? 'biens à louer' : 'biens à vendre');
+      h1Title.textContent = `${s.famille ? fam + (isLoc ? ' à louer' : ' à vendre') : fam}${s.quartier.length === 1 ? ', ' + districtNames[s.quartier[0]] : s.zone === 'monaco' || (!s.zone && !s.quartier.length) ? ' à Monaco' : s.zone === 'cote-d-azur' ? " sur la Côte d'Azur" : s.zone === 'international' ? " à l'international" : ''}`;
+      empty.hidden = n > 0; grid.setAttribute('aria-busy', 'false');
+      loadBtn.hidden = shown >= n; loadBtn.textContent = `Afficher ${Math.min(PAGE, n - shown)} biens de plus (${n - shown} restants)`;
+      endEl.hidden = !(n > 0 && shown >= n);
+      liveCount.textContent = String(n);
+      renderChips(s); toURL(s);
+      const active = (s.famille ? 1 : 0) + s.quartier.length + s.criteres.length + s.pieces.length + (s.min || s.max ? 1 : 0) + (s.surface || s.surfacemax ? 1 : 0) + (s.ref ? 1 : 0) + (s.zone ? 1 : 0);
+      filterCount.textContent = active ? `(${active})` : '';
+      root.querySelectorAll<HTMLElement>('[data-budget]').forEach((b) => { const [mn, mx] = b.dataset.budget!.split('|'); b.classList.toggle('is-active', String(s.min || '') === mn && String(s.max || '') === mx); });
+    }
+    function renderChips(s: ReturnType<typeof state>) {
+      chips.innerHTML = '';
+      const fmt = (n: number) => isLoc ? `${n.toLocaleString('fr-FR')} €/mois` : n >= 1e6 ? `${(n / 1e6).toLocaleString('fr-FR')} M€` : `${n.toLocaleString('fr-FR')} €`;
+      const add = (label: string, undo: () => void) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip is-active'; b.innerHTML = `${label} <span class="chip-remove" aria-hidden="true">✕</span>`; b.setAttribute('aria-label', `Retirer le filtre ${label}`); b.addEventListener('click', () => { undo(); apply(); }); chips.append(b); };
+      if (s.zone) add({ monaco: 'Monaco', 'cote-d-azur': "Côte d'Azur", international: 'International' }[s.zone]!, () => { (form.querySelector('input[name=zone][value=""]') as HTMLInputElement).checked = true; root.querySelectorAll<HTMLInputElement>('[data-zone-radio]').forEach((r) => { r.checked = r.value === ''; }); });
+      if (s.famille) add(famNames[s.famille], () => { (form.querySelector('input[name=famille][value=""]') as HTMLInputElement).checked = true; });
+      s.quartier.forEach((q) => add(districtNames[q], () => { (form.querySelector(`input[name=quartier][value="${q}"]`) as HTMLInputElement).checked = false; }));
+      if (s.min || s.max) add(s.min && s.max ? `${fmt(s.min)} – ${fmt(s.max)}` : s.max ? `< ${fmt(s.max)}` : `> ${fmt(s.min)}`, () => { (form.elements.namedItem('min') as HTMLInputElement).value = ''; (form.elements.namedItem('max') as HTMLInputElement).value = ''; });
+      if (s.surface || s.surfacemax) add(`${s.surface ? '≥ ' + s.surface + ' m²' : ''}${s.surface && s.surfacemax ? ' · ' : ''}${s.surfacemax ? '≤ ' + s.surfacemax + ' m²' : ''}`, () => { (form.elements.namedItem('surface') as HTMLInputElement).value = ''; (form.elements.namedItem('surfacemax') as HTMLInputElement).value = ''; });
+      s.pieces.forEach((p) => add(p === '1' ? 'Studio' : p === '5' ? '5 pièces et +' : `${p} pièces`, () => { (form.querySelector(`input[name=pieces][value="${p}"]`) as HTMLInputElement).checked = false; }));
+      s.criteres.forEach((c) => add(critNames[c], () => { (form.querySelector(`input[name=criteres][value="${c}"]`) as HTMLInputElement).checked = false; }));
+      if (s.ref) add(`Réf. ${s.ref}`, () => { (form.elements.namedItem('ref') as HTMLInputElement).value = ''; });
+      if (chips.childElementCount) { const all = document.createElement('button'); all.type = 'button'; all.className = 'chip'; all.textContent = 'Tout effacer'; all.addEventListener('click', reset); chips.append(all); }
+    }
+    function reset() { form.reset(); root.querySelectorAll<HTMLInputElement>('[data-zone-radio]').forEach((r) => { r.checked = r.value === ''; }); (form.querySelector('input[name=zone][value=""]') as HTMLInputElement).checked = true; apply(); }
+
+    // ── événements
+    let t: number | undefined;
+    const desktop = () => matchMedia('(min-width: 1024px)').matches;
+    form.addEventListener('input', () => { clearTimeout(t); t = window.setTimeout(() => { if (desktop()) apply(); else liveCount.textContent = String(cards.filter((c) => matches(c, state())).length); }, 250); });
+    form.addEventListener('submit', (e) => { e.preventDefault(); apply(); });
+    root.querySelector('[data-apply]')!.addEventListener('click', () => apply());
+    root.querySelector('[data-reset]')!.addEventListener('click', reset);
+    root.querySelectorAll<HTMLElement>('[data-budget]').forEach((b) => b.addEventListener('click', () => { const [mn, mx] = b.dataset.budget!.split('|'); (form.elements.namedItem('min') as HTMLInputElement).value = mn; (form.elements.namedItem('max') as HTMLInputElement).value = mx; if (desktop()) apply(); else form.dispatchEvent(new Event('input')); }));
+    root.querySelectorAll<HTMLElement>('[data-clear-group]').forEach((b) => b.addEventListener('click', () => { form.querySelectorAll<HTMLInputElement>(`input[name=${b.dataset.clearGroup}]`).forEach((i) => { i.checked = false; }); form.dispatchEvent(new Event('input')); }));
+    root.querySelectorAll<HTMLInputElement>('[data-zone-radio]').forEach((r) => r.addEventListener('change', () => { (form.querySelector(`input[name=zone][value="${r.value}"]`) as HTMLInputElement).checked = true; apply(); }));
+    sorts.forEach((s) => s.addEventListener('change', () => { sorts.forEach((o) => { o.value = s.value; }); apply(); }));
+    loadBtn.addEventListener('click', () => { page++; const firstNewIdx = cards.filter((c) => !c.hidden).length; apply(false); (grid.querySelectorAll<HTMLElement>('.property-card:not([hidden])')[firstNewIdx]?.querySelector('a') as HTMLElement)?.focus(); });
+    root.querySelector('[data-widen]')!.addEventListener('click', () => { form.querySelectorAll<HTMLInputElement>('input[name=quartier]').forEach((i) => { i.checked = false; }); apply(); });
+    root.querySelector('[data-clear-assistant]')!.addEventListener('click', () => { assistantScores = null; assistantNotice.hidden = true; apply(); });
+    // vue grille/liste
+    const view = root.querySelectorAll<HTMLInputElement>('input[name=view]');
+    const setView = (v: string) => { grid.classList.toggle('view-list', v === 'list'); view.forEach((i) => { i.checked = i.value === v; }); try { localStorage.setItem('smir-view', v); } catch {} };
+    view.forEach((i) => i.addEventListener('change', () => setView(i.value)));
+    try { const v = localStorage.getItem('smir-view'); if (v) setView(v); } catch {}
+    // sheet mobile
+    const filters = root.querySelector('#filters') as HTMLElement; const openF = root.querySelector('[data-open-filters]') as HTMLButtonElement;
+    const setOpen = (o: boolean) => { filters.classList.toggle('is-open', o); openF.setAttribute('aria-expanded', String(o)); document.body.style.overflow = o ? 'hidden' : ''; if (o) (filters.querySelector('.filters-head .btn-icon') as HTMLElement)?.focus(); else openF.focus(); };
+    openF.addEventListener('click', () => setOpen(true));
+    root.querySelectorAll('[data-close-filters]').forEach((b) => b.addEventListener('click', () => setOpen(false)));
+    filters.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); });
+    // alerte
+    root.querySelector<HTMLFormElement>('[data-alert-form]')?.addEventListener('submit', (e) => { e.preventDefault(); const f = e.currentTarget as HTMLFormElement; document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'alerte', criteria: state() } })); (f.querySelector('[data-alert-ok]') as HTMLElement).hidden = false; });
+
+    fromURL(); apply(false);
+  }
+</script>

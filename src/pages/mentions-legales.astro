@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+<Base title="Mentions légales et confidentialité" noindex>
+  <section class="section-tight"><div class="container-narrow prose">
+    <h1>Mentions légales</h1>
+    <p class="notice">Site de démonstration (concept de refonte). Les informations ci-dessous sont des gabarits à compléter avant toute mise en ligne.</p>
+    <h2>Éditeur</h2>
+    <p>{site.legalName} — Société Anonyme Monégasque au capital de [à compléter] — RCI [à compléter] — {site.address.line1}, {site.address.line2}. Téléphone : {site.phone.display}. E-mail : {site.email}. Directeur de la publication : [à compléter].</p>
+    <h2>Activité réglementée</h2>
+    <p>Agent immobilier, membre de la Chambre Immobilière Monégasque. Autorisation d'exercer n° [à compléter]. Honoraires conformes au barème de la Chambre Immobilière Monégasque.</p>
+    <h2>Hébergement</h2>
+    <p>[Hébergeur à compléter].</p>
+    <h2 id="confidentialite">Politique de confidentialité</h2>
+    <p>Les données collectées via les formulaires (contact, estimation, assistant, alertes) sont utilisées uniquement pour répondre à votre demande et vous proposer des biens correspondant à vos critères. Elles sont conservées 3 ans après le dernier contact et ne sont jamais cédées à des tiers.</p>
+    <ul>
+      <li><strong>Responsable du traitement :</strong> {site.legalName}.</li>
+      <li><strong>Base légale :</strong> votre consentement (case à cocher) et l'exécution de mesures précontractuelles.</li>
+      <li><strong>Vos droits :</strong> accès, rectification, effacement, opposition et portabilité, en écrivant à {site.email}. Vous pouvez également saisir la Commission de Contrôle des Informations Nominatives (CCIN) à Monaco.</li>
+      <li><strong>Cookies :</strong> ce site n'utilise aucun cookie publicitaire ni traceur tiers. Les préférences (thème, favoris, vue) sont stockées localement dans votre navigateur et ne nous sont pas transmises.</li>
+      <li><strong>Cartes interactives :</strong> chargées uniquement à votre demande.</li>
+    </ul>
+    <h2>Propriété intellectuelle</h2>
+    <p>Les textes, illustrations et la structure du site sont protégés. Les biens présentés sur cette démonstration sont fictifs.</p>
+  </div></section>
+</Base>

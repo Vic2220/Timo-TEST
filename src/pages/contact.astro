@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+---
+<Base title="Nous rencontrer" description="Groupe SMIR, Winter Palace, 4 boulevard des Moulins, Monaco. Téléphone, WhatsApp, e-mail et prise de rendez-vous. Réponse sous 24 h ouvrées.">
+  <section class="contact section-tight"><div class="container">
+    <nav class="small muted mb-4" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <span aria-current="page">Contact</span></nav>
+    <h1>Nous rencontrer</h1>
+    <div class="c-grid">
+      <aside class="c-info">
+        <div class="card card-pad stack">
+          <p><strong>{site.address.line1}</strong><br />{site.address.line2}<br /><span class="small muted">{site.address.district}</span></p>
+          <p class="small">{site.hours.map((h) => <>{h.days} : {h.time}<br /></>)}</p>
+          <p><a href={site.phone.href} class="btn btn-primary btn-block"><Icon name="phone" /> {site.phone.display}</a></p>
+          <p><a href={`${site.whatsapp.href}?text=${encodeURIComponent('Bonjour, je souhaite…')}`} class="btn btn-secondary btn-block" rel="noopener"><Icon name="whatsapp" /> WhatsApp</a></p>
+          <p><a href={`mailto:${site.email}`}>{site.email}</a></p>
+          <p class="small muted">FR · EN · RU · IT</p>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address.mapsQuery)}`} class="btn btn-ghost btn-sm" rel="noopener" target="_blank">Itinéraire ↗</a>
+        </div>
+        <div class="card map">
+          <svg viewBox="0 0 400 260" aria-label="Plan schématique du Carré d'Or avec le Winter Palace">
+            <rect width="400" height="260" fill="var(--ill-stone-1)" rx="12"/>
+            <g stroke="var(--ill-light)" stroke-width="10" stroke-linecap="round" fill="none"><path d="M20 90 Q200 60 380 100"/><path d="M40 180 Q200 150 370 190"/><path d="M150 40 L170 240"/><path d="M270 30 L250 240"/></g>
+            <g stroke="var(--ill-light)" stroke-width="4" fill="none"><path d="M20 130 Q200 110 380 140"/></g>
+            <rect x="180" y="100" width="50" height="40" rx="4" fill="var(--ill-sea-1)" opacity=".8"/><text x="205" y="124" text-anchor="middle" font-size="9" fill="#fff" font-family="sans-serif">Casino</text>
+            <circle cx="300" cy="80" r="9" fill="var(--accent)" stroke="#fff" stroke-width="2"/><text x="300" y="64" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)" font-family="sans-serif">Winter Palace</text>
+            <circle cx="120" cy="150" r="5" fill="var(--ill-sea-2)"/><text x="120" y="170" text-anchor="middle" font-size="9" fill="var(--text-2)" font-family="sans-serif">Métropole</text>
+            <circle cx="330" cy="200" r="5" fill="var(--ill-plant)"/><text x="330" y="220" text-anchor="middle" font-size="9" fill="var(--text-2)" font-family="sans-serif">Jardins</text>
+            <text x="300" y="104" text-anchor="middle" font-size="9" fill="var(--text-2)" font-family="sans-serif">Casino 3 min</text>
+          </svg>
+          <p class="small muted" style="padding:0 8px 8px"><button type="button" class="link" data-map-load>Afficher la carte interactive</button> (chargement différé, avec votre accord)</p>
+        </div>
+      </aside>
+
+      <form class="card c-form" id="rdv" data-contact-form novalidate>
+        <h2 class="h3">Écrivez-nous ou prenez rendez-vous</h2>
+        <div class="field"><span class="label">Objet</span><div class="cluster">{[['acheter', 'Acheter'], ['louer', 'Louer'], ['vendre', 'Vendre / estimer'], ['gestion', 'Gestion'], ['alerte', 'Alerte nouveautés'], ['autre', 'Autre']].map(([v, l], i) => <label class="chip"><input type="radio" name="objet" value={v} checked={i === 0} />{l}</label>)}</div></div>
+        <div class="grid cols-2">
+          <div class="field"><label for="f-name">Nom</label><input id="f-name" name="name" class="input" autocomplete="name" required /><p class="error-msg" data-err-for="name" hidden>Veuillez indiquer votre nom.</p></div>
+          <div class="field"><label for="f-email">E-mail</label><input id="f-email" name="email" type="email" class="input" autocomplete="email" required /><p class="error-msg" data-err-for="email" hidden>Cette adresse e-mail semble incorrecte.</p></div>
+        </div>
+        <div class="field"><label for="f-phone">Téléphone <span class="muted">(facultatif)</span></label><input id="f-phone" name="phone" type="tel" class="input" autocomplete="tel" /></div>
+        <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" class="textarea" rows="5" required></textarea><p class="error-msg" data-err-for="message" hidden>Dites-nous en quelques mots ce que vous recherchez.</p></div>
+        <div class="grid cols-2">
+          <div class="field"><label for="f-date">Créneau souhaité <span class="muted">(facultatif)</span></label><input id="f-date" name="date" type="date" class="input" /></div>
+          <div class="field"><span class="label">Moment</span><div class="cluster"><label class="chip"><input type="radio" name="moment" value="matin" />Matin</label><label class="chip"><input type="radio" name="moment" value="apres-midi" />Après-midi</label></div></div>
+        </div>
+        <label class="checkbox"><input type="checkbox" name="consent" required /><span>J'accepte que Groupe SMIR me contacte au sujet de ma demande. Données conservées 3 ans, jamais cédées. <a href="/mentions-legales/#confidentialite">Politique de confidentialité</a>.</span></label>
+        <p class="error-msg" data-err-for="consent" hidden>Veuillez accepter la politique de confidentialité pour continuer.</p>
+        <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+        <button type="submit" class="btn btn-primary">Envoyer</button>
+        <p class="notice notice-success" data-ok hidden>Merci, votre demande est bien reçue. Nous vous répondons sous 24 h ouvrées.</p>
+        <hr />
+        <div class="callback"><h3 class="h4">Préférez-vous être rappelé ?</h3><div class="cb-row"><input type="tel" class="input" placeholder="+377 …" aria-label="Votre numéro" data-cb-phone /><button type="button" class="btn btn-secondary" data-cb>Me rappeler</button></div><p class="notice notice-success" data-cb-ok hidden>C'est noté, nous vous rappelons sous 24 h ouvrées.</p></div>
+      </form>
+    </div>
+  </div></section>
+</Base>
+<style>
+  .contact h1 { margin-bottom: var(--space-6); }
+  .c-grid { display: grid; gap: var(--space-6); }
+  @media (min-width: 1024px) { .c-grid { grid-template-columns: 5fr 7fr; align-items: start; } .c-info { order: 2; } }
+  .c-info { display: grid; gap: var(--space-4); }
+  .map { padding: 8px; } .map svg { inline-size: 100%; block-size: auto; border-radius: var(--radius-sm); }
+  .link { color: var(--primary); text-decoration: underline; }
+  .c-form { padding: var(--space-5); display: grid; gap: var(--space-4); border-radius: var(--radius-lg); }
+  @media (min-width: 768px) { .c-form { padding: var(--space-6); } }
+  .h3 { font-size: var(--fs-h3); } .h4 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; }
+  .c-form .btn-primary { justify-self: start; }
+  .cb-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 8px; }
+  .callback { display: grid; gap: 4px; }
+</style>
+<script>
+  const form = document.querySelector('[data-contact-form]') as HTMLFormElement;
+  const p = new URLSearchParams(location.search);
+  const objet = p.get('objet'); if (objet) { const r = form.querySelector(`[name=objet][value="${objet}"]`) as HTMLInputElement | null; if (r) r.checked = true; }
+  const resume = p.get('resume'); if (resume) (form.querySelector('[name=message]') as HTMLTextAreaElement).value = `Bonjour, je recherche : ${resume}. Pouvez-vous me proposer un rendez-vous ?`;
+  if (objet === 'alerte') (form.querySelector('[name=message]') as HTMLTextAreaElement).value ||= 'Je souhaite être prévenu(e) des nouveaux biens correspondant à ma recherche.';
+  form.addEventListener('submit', (e) => {
+    e.preventDefault(); const fd = new FormData(form); let ok = true;
+    form.querySelectorAll('[data-err-for]').forEach((el) => { (el as HTMLElement).hidden = true; });
+    const fail = (n: string) => { ok = false; (form.querySelector(`[data-err-for="${n}"]`) as HTMLElement).hidden = false; };
+    if (fd.get('website')) return;
+    if (!String(fd.get('name')).trim()) fail('name'); if (!/.+@.+\..+/.test(String(fd.get('email')))) fail('email'); if (!String(fd.get('message')).trim()) fail('message'); if (!fd.get('consent')) fail('consent');
+    if (!ok) { (form.querySelector('[data-err-for]:not([hidden])')?.previousElementSibling as HTMLElement)?.focus(); return; }
+    document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'contact', data: Object.fromEntries(fd) } }));
+    (form.querySelector('[data-ok]') as HTMLElement).hidden = false; form.querySelector('button[type=submit]')!.setAttribute('disabled', '');
+  });
+  document.querySelector('[data-cb]')?.addEventListener('click', () => { const i = document.querySelector('[data-cb-phone]') as HTMLInputElement; if (i.value.trim().length < 6) { i.focus(); return; } document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'rappel', phone: i.value } })); (document.querySelector('[data-cb-ok]') as HTMLElement).hidden = false; });
+  document.querySelector('[data-map-load]')?.addEventListener('click', () => (window as any).toast?.('Carte interactive : à brancher (Leaflet / MapLibre) — voir README'));
+</script>

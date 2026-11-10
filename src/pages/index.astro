@@ -1,0 +1,335 @@
+---
+import Base from '../layouts/Base.astro';
+import SearchBar from '../components/SearchBar.astro';
+import ListingCard from '../components/ListingCard.astro';
+import HeroArt from '../components/HeroArt.astro';
+import Icon from '../components/Icon.astro';
+import Illustration from '../components/Illustration.astro';
+import { listings, FAMILY_LABELS } from '../data/listings';
+import districts from '../data/districts.json';
+import { site } from '../data/site';
+import { formatEur } from '../lib/format';
+
+const featured = [...listings.filter((l) => l.featured), ...listings.filter((l) => !l.featured && l.isNew)].slice(0, 6);
+const ventesMonaco = listings.filter((l) => l.transaction === 'vente' && l.country === 'Monaco').length;
+const countIn = (slug: string) => listings.filter((l) => l.district === slug).length;
+const sample = listings.find((l) => l.ref === 'V-304')!;
+const services = [
+  { title: 'Acheter à Monaco', text: 'Offre écrite, acompte de 10 % chez le notaire, compromis puis acte authentique : nous vous accompagnons à chaque étape, avec des frais annoncés dès le départ.', href: '/services/#achat', icon: 'key', span: true },
+  { title: 'Louer', text: 'Recherche, rédaction du bail, état des lieux et démarches d\'installation.', href: '/services/#location', icon: 'calendar' },
+  { title: 'Gérer', text: 'Baux, loyers, charges, sinistres, syndic : votre patrimoine suivi au quotidien.', href: '/services/#gestion', icon: 'building' },
+  { title: 'Évaluer & conseiller', text: 'Estimation argumentée, analyse de marché, rapport de valeur vénale.', href: '/estimation/', icon: 'ruler' },
+  { title: 'Devenir résident', text: 'Banque, administration, écoles : notre réseau pour vous installer.', href: '/services/#residence', icon: 'users' },
+  { title: 'Investir', text: 'Rendement locatif, fiscalité, immeubles et programmes neufs.', href: '/services/#investir', icon: 'trending' },
+];
+const testimonials = [
+  { quote: 'Nous avons acheté avec l\'Agence Lorenzi en 1988, puis vendu avec le Groupe SMIR en 2025. Même exigence, même discrétion.', who: 'M. et Mme B.', ctx: 'Monte-Carlo' },
+  { quote: 'Installation, banque, école : tout a été anticipé. Nous avons emménagé six semaines après notre premier appel.', who: 'Famille R.', ctx: 'arrivée de Londres' },
+  { quote: 'Gestion locative sans surprise : comptes-rendus clairs, loyers à l\'heure.', who: 'Propriétaire investisseur', ctx: 'Fontvieille' },
+];
+---
+<Base title={site.name} bodyClass="home">
+  <!-- 5.1 HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container-wide hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow reveal">Monaco · Côte d'Azur · International</p>
+        <h1 id="hero-title" class="display reveal">L'immobilier à Monaco, conseillé <em class="brand">en famille</em> depuis 1925.</h1>
+        <p class="lead reveal">Achat, location, gestion et estimation. Une maison indépendante du Carré d'Or, membre de la Chambre Immobilière Monégasque.</p>
+        <div class="reveal"><SearchBar /></div>
+        <form class="nl-form reveal" data-nl-form>
+          <label for="nl-input" class="small muted">Ou décrivez votre projet en une phrase :</label>
+          <div class="nl-row">
+            <input id="nl-input" class="input" type="text" placeholder="Ex. : 3 pièces vue mer, Larvotto, moins de 6 M€" autocomplete="off" />
+            <button type="submit" class="btn btn-secondary" aria-label="Lancer la recherche guidée"><Icon name="sparkles" size={18} /><span class="hide-mobile">Guider</span></button>
+          </div>
+        </form>
+        <div class="hero-ctas reveal">
+          <button type="button" class="btn btn-ghost" data-open-assistant aria-haspopup="dialog"><Icon name="sparkles" size={18} /> Laissez-vous guider</button>
+          <a href="/estimation/" class="btn btn-ghost">Estimer mon bien →</a>
+        </div>
+        <p class="trust small reveal"><span><Icon name="seal" size={16} /> Depuis 1925</span><span><Icon name="pin" size={16} /> 4, boulevard des Moulins</span><span><Icon name="globe" size={16} /> FR · EN · RU · IT</span></p>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-frame"><HeroArt /></div>
+        <a href={`/bien/${sample.ref}/`} class="float-card card">
+          <span class="fc-media"><Illustration kind={sample.illustration} seed={304} title="" /></span>
+          <span class="fc-body"><strong>{sample.rooms} pièces · {districts.find((d) => d.slug === sample.district)?.name}</strong><span class="tnum">{formatEur(sample.price!)}</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.2 PREUVES -->
+  <section class="section section-alt" aria-labelledby="proof-title">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Une maison, trois dates</p><h2 id="proof-title">Cent ans de Monaco, une seule adresse.</h2></div>
+      <div class="bento proof">
+        <div class="bento-item reveal"><p class="stat"><span class="num" data-count="1925">1925</span><span class="lbl">Fondation de l'Agence Lorenzi.</span></p></div>
+        <div class="bento-item reveal"><p class="stat"><span class="num" data-count="1956">1956</span><span class="lbl">Création de Monte Carlo Immobilier.</span></p></div>
+        <div class="bento-item reveal"><p class="stat"><span class="num" data-count="1990">1990</span><span class="lbl">Naissance du Groupe SMIR, réunion des deux maisons.</span></p></div>
+        <div class="bento-item span-2 reveal"><span class="icon"><Icon name="seal" /></span><h3>Membre de la Chambre Immobilière Monégasque</h3><p>Honoraires au barème officiel, procédure encadrée par notaire.</p></div>
+        <div class="bento-item reveal"><p class="stat"><span class="num">4 <small>langues</small></span><span class="lbl">Français, anglais, russe, italien. Une équipe internationale.</span></p></div>
+        <div class="bento-item span-2 reveal"><span class="icon"><Icon name="pin" /></span><h3>Winter Palace, 4 boulevard des Moulins</h3><p>Au cœur du Carré d'Or, à deux pas du Casino de Monte-Carlo.</p></div>
+        <div class="bento-item span-2 tint reveal"><span class="icon"><Icon name="clock" /></span><h3>Réponse sous 24 h ouvrées</h3><p>Pour toute demande d'estimation ou de visite.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.3 À LA UNE -->
+  <section class="section" aria-labelledby="featured-title">
+    <div class="container">
+      <div class="section-head row"><div><p class="eyebrow">Sélection</p><h2 id="featured-title">Nos biens à la une</h2></div><a href="/acheter/" class="arrow">Voir les {ventesMonaco} ventes à Monaco</a></div>
+      <div class="carousel" data-carousel>
+        <ul class="carousel-track" role="list">{featured.map((l, i) => <li class="reveal"><ListingCard listing={l} eager={i < 3} /></li>)}</ul>
+        <div class="carousel-nav hide-mobile"><span class="small muted" data-carousel-count>1 / {featured.length}</span><button type="button" class="btn-icon card" data-carousel-prev aria-label="Précédent"><Icon name="arrowLeft" /></button><button type="button" class="btn-icon card" data-carousel-next aria-label="Suivant"><Icon name="arrowRight" /></button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.4 QUARTIERS -->
+  <section class="section" aria-labelledby="districts-title">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Où vivre</p><h2 id="districts-title">Neuf quartiers, neuf façons d'habiter Monaco.</h2><p class="lead">Choisissez un quartier pour voir les biens disponibles et ce qui le distingue.</p></div>
+      <div class="districts-grid">
+        <div class="map card reveal" aria-hidden="true">
+          <svg viewBox="0 0 600 420" class="map-svg">
+            <defs><linearGradient id="mp-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--ill-sea-1)"/><stop offset="1" stop-color="var(--ill-sea-2)"/></linearGradient></defs>
+            <rect width="600" height="420" fill="url(#mp-sea)" rx="16"/>
+            <g stroke="var(--accent)" stroke-width="1.2" class="zones">
+              <path data-zone="jardin-exotique" d="M20 120 L120 70 L170 150 L90 220 L20 190Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="moneghetti" d="M120 70 L220 60 L240 150 L170 150Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="la-condamine" d="M170 150 L240 150 L300 210 L250 280 L180 250 L90 220Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="monaco-ville" d="M90 220 L180 250 L190 330 L120 350 L60 300Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="fontvieille" d="M60 300 L120 350 L190 330 L200 390 L80 400 L30 350Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="carre-d-or" d="M240 150 L330 110 L380 170 L300 210Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="monte-carlo" d="M220 60 L360 30 L430 90 L330 110 L240 150Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="larvotto" d="M380 170 L470 150 L520 210 L440 250 L300 210Z" fill="var(--ill-stone-2)"/>
+              <path data-zone="la-rousse-saint-roman" d="M430 90 L560 60 L580 160 L520 210 L470 150 L380 170 L330 110Z" fill="var(--ill-stone-2)"/>
+            </g>
+            <text x="300" y="400" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="var(--ill-light)" opacity=".8">Mer Méditerranée — plan schématique</text>
+          </svg>
+        </div>
+        <ul class="district-list" role="list">
+          {districts.map((d) => (
+            <li class="reveal"><a href={`/acheter/?quartier=${d.slug}`} data-district={d.slug}>
+              <span class="dl-name">{d.name}</span><span class="dl-tag small muted">{d.tagline}</span><span class="dl-count small">{countIn(d.slug)} bien{countIn(d.slug) > 1 ? 's' : ''}</span>
+            </a></li>
+          ))}
+        </ul>
+      </div>
+      <p class="mt-5"><a href="/monaco/#quartiers" class="arrow">Comparer les quartiers (temps de trajet, commodités)</a></p>
+    </div>
+  </section>
+
+  <!-- 5.5 SERVICES -->
+  <section class="section section-alt" aria-labelledby="services-title">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Ce que nous faisons</p><h2 id="services-title">Un seul interlocuteur, du premier rendez-vous à la remise des clés.</h2></div>
+      <div class="bento services-bento">
+        {services.map((s) => (
+          <a href={s.href} class={`bento-item reveal ${s.span ? 'span-2' : ''}`}>
+            <span class="icon"><Icon name={s.icon} /></span>
+            <h3 class="serif">{s.title}</h3><p>{s.text}</p><span class="arrow">En savoir plus</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.6 PARCOURS VENDEUR -->
+  <section class="section seller" aria-labelledby="seller-title">
+    <div class="container seller-grid">
+      <div class="seller-copy">
+        <p class="eyebrow">Propriétaires</p>
+        <h2 id="seller-title">Vous vendez, louez ou confiez votre bien ? Parlons-en sous 24 h.</h2>
+        <p class="lead">Pas d'estimation automatique approximative : un conseiller analyse votre bien et vous rappelle avec une valeur argumentée.</p>
+        <ol class="steps" role="list">
+          <li><span class="n">1</span><span>Décrivez votre bien en 2 minutes</span></li>
+          <li><span class="n">2</span><span>Un conseiller vous rappelle sous 24 h ouvrées</span></li>
+          <li><span class="n">3</span><span>Vous recevez une estimation argumentée et un plan de mise en marché</span></li>
+        </ol>
+      </div>
+      <form class="seller-form card card-pad" action="/estimation/" method="get">
+        <div class="field"><label for="sf-type">Type de bien</label><select id="sf-type" name="type" class="select">{Object.entries(FAMILY_LABELS).map(([k, v]) => <option value={k}>{v}</option>)}</select></div>
+        <div class="field"><label for="sf-quartier">Quartier</label><select id="sf-quartier" name="quartier" class="select">{districts.map((d) => <option value={d.slug}>{d.name}</option>)}<option value="cote-d-azur">Côte d'Azur</option></select></div>
+        <div class="field"><label for="sf-surface">Surface habitable</label><div class="affix"><input id="sf-surface" name="surface" type="number" min="5" step="1" inputmode="numeric" class="input" placeholder="95" /><span>m²</span></div></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Commencer mon estimation →</button>
+        <p class="small muted text-center">Gratuit et sans engagement. Vos données restent chez Groupe SMIR.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 5.7 VIVRE À MONACO -->
+  <section class="section" aria-labelledby="monaco-title">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Vivre à Monaco</p><h2 id="monaco-title">Un pays de 2 km² qui change une vie.</h2></div>
+      <div class="stats-band">
+        {[['2 km²', 'de territoire, entre mer et montagne'], ['36 000', 'habitants, 120 nationalités'], ['0 %', 'd\'impôt sur le revenu pour les résidents (hors ressortissants français)'], ['1 pour 100', 'policier par habitant, 700 caméras'], ['Depuis 1297', 'la famille Grimaldi, une stabilité unique']].map(([n, l]) => (
+          <p class="stat reveal"><span class="num">{n}</span><span class="lbl">{l}</span></p>
+        ))}
+      </div>
+      <div class="grid cols-3 mt-6">
+        {[['Devenir résident', 'Les conditions et les délais, expliqués simplement.', '/monaco/#residence', 'users'], ['Le régime fiscal', 'Ce qui s\'applique selon votre nationalité.', '/monaco/#fiscalite', 'shield'], ['Les quartiers', 'Trajets, écoles, plages, commodités.', '/monaco/#quartiers', 'pin']].map(([t, d, h, i]) => (
+          <a href={h} class="bento-item reveal"><span class="icon"><Icon name={i} /></span><h3>{t}</h3><p>{d}</p><span class="arrow">Lire</span></a>
+        ))}
+      </div>
+      <p class="small muted mt-4">Informations générales, à confirmer avec votre conseil fiscal.</p>
+    </div>
+  </section>
+
+  <!-- 5.8 TÉMOIGNAGES -->
+  <section class="section section-alt" aria-labelledby="testi-title">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Ils nous ont confié leur projet</p><h2 id="testi-title">Des relations qui durent, parfois sur trois générations.</h2></div>
+      <ul class="testimonials" role="list">
+        {testimonials.map((t) => (
+          <li class="card card-pad testimonial reveal">
+            <span class="quote-mark" aria-hidden="true">“</span>
+            <blockquote><p>{t.quote}</p></blockquote>
+            <p class="who"><strong>{t.who}</strong> <span class="muted">· {t.ctx}</span></p>
+            <p class="stars" aria-label="5 sur 5">{Array.from({ length: 5 }).map(() => <Icon name="star" size={16} />)}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="small muted mt-4">Avis fictifs de démonstration, à remplacer par des avis réels recueillis avec accord écrit.</p>
+    </div>
+  </section>
+
+  <!-- 5.9 CTA FINAL -->
+  <section class="section-tight" aria-labelledby="cta-title">
+    <div class="container-narrow">
+      <div class="cta-card card">
+        <h2 id="cta-title">Parlons de votre projet.</h2>
+        <p class="lead" style="margin-inline:auto">Au Winter Palace, par téléphone ou sur WhatsApp, en français, anglais, russe ou italien.</p>
+        <div class="cluster" style="justify-content:center">
+          <a href="/contact/#rdv" class="btn btn-primary">Prendre rendez-vous</a>
+          <a href={site.whatsapp.href} class="btn btn-secondary" rel="noopener"><Icon name="whatsapp" /> WhatsApp</a>
+          <a href={site.phone.href} class="btn btn-ghost">{site.phone.display}</a>
+        </div>
+        <p class="small muted">Du lundi au vendredi, 9 h – 18 h · 4, boulevard des Moulins, Monaco</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: var(--space-6) var(--section-y); overflow: clip; }
+  .hero-grid { display: grid; gap: var(--space-6); }
+  @media (min-width: 1024px) { .hero { padding-block: var(--space-7) var(--section-y); } .hero-grid { grid-template-columns: 7fr 5fr; gap: var(--space-8); align-items: center; min-block-size: 640px; } }
+  .hero-copy { display: grid; gap: var(--space-5); align-content: center; }
+  .hero-copy h1 { max-inline-size: 16ch; }
+  .nl-form { display: grid; gap: 6px; }
+  .nl-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: 8px; }
+  @media (max-width: 479px) { .hero-ctas .btn { inline-size: 100%; } }
+  .trust { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--text-2); }
+  .trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .trust svg { color: var(--accent); }
+  .hero-visual { position: relative; order: -1; }
+  @media (min-width: 1024px) { .hero-visual { order: 0; } }
+  .hero-frame { border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 16 / 10; max-block-size: 220px; }
+  @media (min-width: 768px) { .hero-frame { max-block-size: 320px; } }
+  @media (min-width: 1024px) { .hero-frame { aspect-ratio: 4 / 5; max-block-size: none; } }
+  .float-card { position: absolute; left: 16px; bottom: 16px; display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: center; padding: 8px; min-inline-size: 240px; text-decoration: none; color: var(--text); box-shadow: var(--shadow-lg); }
+  .fc-media { display: block; inline-size: 72px; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; }
+  .fc-body { display: grid; gap: 2px; font-size: var(--fs-small); }
+  .fc-body .tnum { font-weight: 700; }
+  @media (max-width: 767px) { .float-card { display: none; } }
+
+  .proof { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 1024px) { .proof { grid-template-columns: repeat(6, 1fr); } .proof .span-2 { grid-column: span 2; } }
+  @media (max-width: 1023px) { .proof .span-2 { grid-column: span 2; } }
+  .proof .stat .num { color: var(--accent-text); font-size: var(--fs-h1); }
+  .bento-item.tint { background: var(--primary-tint); border-color: transparent; }
+
+  .carousel { position: relative; }
+  .carousel-track { display: grid; grid-auto-flow: column; grid-auto-columns: 82vw; gap: var(--space-4); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); padding-bottom: 8px; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track > li { scroll-snap-align: start; }
+  @media (min-width: 640px) { .carousel-track { grid-auto-columns: min(320px, 46vw); } }
+  @media (min-width: 1024px) { .carousel-track { grid-auto-columns: calc((100% - 3 * var(--space-5)) / 4); gap: var(--space-5); margin-inline: 0; padding-inline: 0; } }
+  .carousel-nav { position: absolute; right: 0; top: calc(-1 * var(--section-gap-title) - 52px); display: flex; align-items: center; gap: 8px; }
+  @media (max-width: 1023px) { .carousel-nav { display: none; } }
+
+  .districts-grid { display: grid; gap: var(--space-5); }
+  @media (min-width: 1024px) { .districts-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .map { padding: 8px; position: sticky; top: calc(var(--nav-h) + 24px); }
+  @media (max-width: 1023px) { .map { display: none; } }
+  .map-svg { inline-size: 100%; block-size: auto; border-radius: var(--radius-md); }
+  .zones path { transition: fill var(--dur-base); }
+  .zones path.is-hot { fill: var(--ill-gold-1); }
+  .district-list { display: grid; gap: 6px; }
+  .district-list a { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "name count" "tag count"; column-gap: 12px; padding: 12px 16px; min-block-size: 56px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); text-decoration: none; color: var(--text); transition: border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast); }
+  .district-list a:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); transform: translateX(2px); }
+  .dl-name { grid-area: name; font-weight: 600; font-family: var(--font-display); font-size: 1.25rem; }
+  .dl-tag { grid-area: tag; }
+  .dl-count { grid-area: count; align-self: center; font-weight: 600; color: var(--primary); white-space: nowrap; }
+
+  .services-bento { grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .services-bento { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .services-bento { grid-template-columns: repeat(4, 1fr); } }
+  .services-bento h3.serif { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; }
+  .services-bento .bento-item { min-block-size: 180px; }
+
+  .seller { background: var(--footer-bg); color: var(--footer-text); }
+  .seller .eyebrow { color: var(--accent); }
+  .seller .eyebrow::before { background: var(--accent); }
+  .seller h2 { color: var(--footer-text); }
+  .seller .lead { color: var(--footer-text-2); }
+  .seller-grid { display: grid; gap: var(--space-6); }
+  @media (min-width: 1024px) { .seller-grid { grid-template-columns: 5fr 1fr 6fr; } .seller-form { grid-column: 3; } }
+  .seller-copy { display: grid; gap: var(--space-5); align-content: center; }
+  .steps { display: grid; gap: 14px; }
+  .steps li { display: flex; gap: 14px; align-items: baseline; }
+  .steps .n { font-family: var(--font-display); font-size: 2rem; line-height: 1; color: var(--accent); min-inline-size: 28px; }
+  .seller-form { display: grid; gap: var(--space-4); color: var(--text); border-radius: var(--radius-lg); padding: var(--space-6); }
+  .affix { position: relative; }
+  .affix span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: var(--fs-small); color: var(--text-2); }
+  .affix .input { padding-right: 44px; }
+
+  .stats-band { display: grid; gap: var(--space-5); grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 1024px) { .stats-band { grid-template-columns: repeat(5, 1fr); } }
+  .stats-band .num { font-size: var(--fs-h2); color: var(--accent-text); }
+
+  .testimonials { display: grid; gap: var(--space-4); grid-auto-flow: column; grid-auto-columns: 84vw; overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); padding-bottom: 8px; scrollbar-width: none; }
+  .testimonials > li { scroll-snap-align: start; }
+  @media (min-width: 1024px) { .testimonials { grid-auto-flow: row; grid-template-columns: repeat(3, 1fr); margin-inline: 0; padding-inline: 0; overflow: visible; } }
+  .testimonial { position: relative; display: grid; gap: 12px; align-content: start; padding-top: var(--space-7); }
+  .quote-mark { position: absolute; top: 8px; left: 20px; font-family: var(--font-display); font-size: 4rem; line-height: 1; color: var(--accent); opacity: .4; }
+  .testimonial blockquote p { font-family: var(--font-display); font-style: italic; font-size: 1.375rem; line-height: 1.35; }
+  .stars { display: flex; gap: 2px; color: var(--accent); }
+  .stars svg { fill: currentColor; }
+  .who { font-size: var(--fs-small); }
+
+  .cta-card { padding: var(--space-6); text-align: center; display: grid; gap: var(--space-5); justify-items: center; border-radius: var(--radius-xl); }
+  @media (min-width: 768px) { .cta-card { padding: var(--space-7); } }
+</style>
+
+<script>
+  // Saisie libre du hero → ouvre l'assistant avec le texte
+  document.querySelector<HTMLFormElement>('[data-nl-form]')?.addEventListener('submit', (e) => {
+    e.preventDefault(); const v = (document.getElementById('nl-input') as HTMLInputElement).value.trim();
+    (window as any).SMIR?.assistant?.open(v || undefined);
+  });
+  // Compteurs animés (une fois)
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const io = new IntersectionObserver((es) => es.forEach((en) => { if (!en.isIntersecting) return; io.unobserve(en.target); const el = en.target as HTMLElement; const target = parseInt(el.dataset.count!, 10); const t0 = performance.now(); const tick = (t: number) => { const p = Math.min(1, (t - t0) / 800); el.textContent = String(Math.round(1900 + (target - 1900) * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }), { threshold: 0.5 });
+    document.querySelectorAll('[data-count]').forEach((el) => io.observe(el));
+  }
+  // Carrousel
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((c) => {
+    const track = c.querySelector('.carousel-track') as HTMLElement; const count = c.querySelector('[data-carousel-count]')!; const items = track.children.length;
+    const update = () => { const w = (track.firstElementChild as HTMLElement).offsetWidth + 24; count.textContent = `${Math.min(items, Math.round(track.scrollLeft / w) + 1)} / ${items}`; };
+    track.addEventListener('scroll', update, { passive: true });
+    c.querySelector('[data-carousel-prev]')?.addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
+    c.querySelector('[data-carousel-next]')?.addEventListener('click', () => track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }));
+  });
+  // Plan des quartiers : survol → zone
+  const zones = document.querySelectorAll<SVGPathElement>('[data-zone]');
+  document.querySelectorAll<HTMLElement>('[data-district]').forEach((a) => {
+    const on = () => zones.forEach((z) => z.classList.toggle('is-hot', z.dataset.zone === a.dataset.district));
+    const off = () => zones.forEach((z) => z.classList.remove('is-hot'));
+    a.addEventListener('mouseenter', on); a.addEventListener('focus', on); a.addEventListener('mouseleave', off); a.addEventListener('blur', off);
+  });
+</script>

@@ -1,0 +1,57 @@
+---
+import Logo from './Logo.astro';
+import { site, footerNav } from '../data/site';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <Logo />
+      <p class="baseline">Conseil immobilier à Monaco depuis 1925.</p>
+      <p class="small">Agence Lorenzi (1925) · Monte Carlo Immobilier (1956) · Groupe SMIR (1990)</p>
+      <p class="badge badge-dark">Membre de la Chambre Immobilière Monégasque</p>
+    </div>
+    {footerNav.map((col) => (
+      <details class="footer-col" open>
+        <summary><h2>{col.title}</h2></summary>
+        <ul role="list">
+          {col.links.map((l) => <li><a href={l.href} rel={(l as any).external ? 'noopener' : undefined}>{l.label}</a></li>)}
+        </ul>
+      </details>
+    ))}
+    <div class="footer-col">
+      <h2>Nous trouver</h2>
+      <address>
+        <p>{site.address.line1}<br />{site.address.line2}</p>
+        <p class="small">Du lundi au vendredi, 9 h – 18 h</p>
+        <p><a href={site.phone.href}>{site.phone.display}</a><br /><a href={`mailto:${site.email}`}>{site.email}</a></p>
+      </address>
+      <label class="small" for="footer-lang">Langue</label>
+      <select id="footer-lang" class="select footer-lang">{site.languages.map((l) => <option value={l.code} selected={l.code === 'fr'}>{l.label}</option>)}</select>
+    </div>
+  </div>
+  <div class="container footer-bottom small">
+    <p>© {year} {site.legalName} — Agence Lorenzi — Monte Carlo Immobilier. Site de démonstration : biens et coordonnées fictifs.</p>
+  </div>
+</footer>
+<style>
+  .site-footer { background: var(--footer-bg); color: var(--footer-text); padding-block: var(--space-8) var(--space-6); margin-top: auto; }
+  @media (min-width: 1024px) { .site-footer { padding-block: var(--space-9) var(--space-6); } }
+  .site-footer a { color: var(--footer-text); text-decoration: none; }
+  .site-footer a:hover { text-decoration: underline; color: var(--footer-text); }
+  .site-footer .small, .site-footer address { color: var(--footer-text-2); font-style: normal; }
+  .footer-grid { display: grid; gap: var(--space-6); grid-template-columns: 1fr; }
+  @media (min-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; } .footer-brand { grid-column: 1 / -1; } }
+  @media (min-width: 1024px) { .footer-grid { grid-template-columns: 1.4fr 1fr 1fr 1.2fr; } .footer-brand { grid-column: auto; } }
+  .footer-brand { display: grid; gap: var(--space-3); align-content: start; justify-items: start; }
+  .footer-brand :global(.logo) { color: var(--footer-text); }
+  .footer-brand :global(.logo-top) { color: var(--footer-text-2); }
+  .baseline { font-family: var(--font-display); font-size: 1.25rem; font-style: italic; }
+  .footer-col h2 { font-family: var(--font-body); font-size: var(--fs-caption); letter-spacing: 0.08em; text-transform: uppercase; color: var(--footer-text-2); font-weight: 600; margin-bottom: var(--space-3); }
+  .footer-col ul { display: grid; gap: 8px; }
+  .footer-col address { display: grid; gap: 8px; margin-bottom: var(--space-4); }
+  details.footer-col summary { list-style: none; cursor: pointer; }
+  details.footer-col summary::-webkit-details-marker { display: none; }
+  .footer-lang { background: transparent; color: var(--footer-text); border-color: var(--footer-text-2); max-inline-size: 200px; min-block-size: 40px; padding-block: 6px; }
+  .footer-bottom { margin-top: var(--space-7); padding-top: var(--space-4); border-top: 1px solid rgb(255 255 255 / 0.12); color: var(--footer-text-2); }
+</style>

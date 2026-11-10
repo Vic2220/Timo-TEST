@@ -1,0 +1,34 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import ListingCard from '../../../components/ListingCard.astro';
+import FinalCta from '../../../components/FinalCta.astro';
+import Icon from '../../../components/Icon.astro';
+import districts from '../../../data/districts.json';
+import { listings } from '../../../data/listings';
+import { formatEur } from '../../../lib/format';
+export function getStaticPaths() { return districts.map((d) => ({ params: { slug: d.slug }, props: { d } })); }
+const { d } = Astro.props;
+const biens = listings.filter((l) => l.district === d.slug);
+---
+<Base title={`${d.name} — vivre et investir`} description={`${d.tagline}. ${d.description}`}>
+  <PageHero eyebrow="Quartier" title={d.name} lead={d.tagline} illustration={d.illustration} crumbs={[{ label: 'Vivre à Monaco', href: '/monaco/' }, { label: 'Quartiers', href: '/monaco/#quartiers' }, { label: d.name }]} />
+  <section class="section-tight"><div class="container qgrid">
+    <div class="prose"><p class="lead">{d.description}</p><p class="cluster mt-4">{d.vibe.map((v) => <span class="chip">{v}</span>)}</p></div>
+    <div class="stack">
+      <div class="card card-pad"><h3 class="h4">Temps de trajet</h3><dl class="kv mt-4"><dt><Icon name="walk" size={16} /> Casino de Monte-Carlo</dt><dd>{d.walk.casino} min</dd><dt><Icon name="train" size={16} /> Gare de Monaco</dt><dd>{d.walk.gare} min</dd><dt><Icon name="wave" size={16} /> Plage du Larvotto</dt><dd>{d.walk.plage} min</dd><dt><Icon name="plane" size={16} /> Aéroport de Nice</dt><dd>45 min</dd></dl></div>
+      <div class="card card-pad"><h3 class="h4">Prix indicatifs à l'achat</h3><p class="price mt-2">{formatEur(d.pricePerSqm.min)} – {formatEur(d.pricePerSqm.max)}<span class="small muted"> / m²</span></p><p class="small muted">Fourchette indicative de démonstration, variable selon l'immeuble, l'étage et la vue.</p></div>
+    </div>
+  </div></section>
+  <section class="section"><div class="container">
+    <div class="section-head row"><div><h2>Biens à {d.name}</h2></div><a href={`/acheter/?quartier=${d.slug}`} class="arrow">Tous les biens du quartier</a></div>
+    {biens.length ? <div class="card-grid">{biens.slice(0, 6).map((l) => <ListingCard listing={l} />)}</div> : <p class="notice">Aucun bien disponible dans ce quartier pour le moment. <a href="/contact/?objet=alerte">Créer une alerte</a> ou <button type="button" class="link" data-open-assistant>demander conseil à l'assistant</button>.</p>}
+  </div></section>
+  <FinalCta />
+</Base>
+<style>
+  .qgrid { display: grid; gap: var(--space-6); } @media (min-width: 1024px) { .qgrid { grid-template-columns: 1.4fr 1fr; } }
+  .h4 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; }
+  .kv dt { display: flex; gap: 6px; align-items: center; } .kv svg { color: var(--accent); }
+  .link { color: var(--primary); text-decoration: underline; }
+</style>

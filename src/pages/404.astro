@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import SearchBar from '../components/SearchBar.astro';
+---
+<Base title="Page introuvable" noindex>
+  <section class="section"><div class="container-narrow stack text-center" style="justify-items:center">
+    <svg viewBox="0 0 240 150" width="240" aria-hidden="true"><path d="M30 140 V80 A90 90 0 0 1 210 80 V140" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="M60 140 V90 A60 60 0 0 1 180 90 V140" fill="none" stroke="var(--border)" stroke-width="1.5"/></svg>
+    <h1>Cette page n'existe plus.</h1>
+    <p class="lead" style="margin-inline:auto">Le bien a peut-être été vendu ou l'adresse a changé.</p>
+    <p class="notice" data-legacy hidden>Vous cherchiez nos ventes ? <a href="/acheter/">Voir les biens à vendre</a></p>
+    <div style="inline-size:100%;text-align:left"><SearchBar compact /></div>
+    <p class="cluster" style="justify-content:center"><a href="/acheter/" class="btn btn-secondary">Acheter</a><a href="/louer/" class="btn btn-secondary">Louer</a><a href="/contact/" class="btn btn-ghost">Contact</a></p>
+  </div></section>
+</Base>
+<script>if (/\/fr\/(ventes|locations|detail)/.test(location.pathname)) (document.querySelector('[data-legacy]') as HTMLElement).hidden = false;</script>

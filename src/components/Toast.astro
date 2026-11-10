@@ -1,0 +1,13 @@
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+  // API globale minimaliste : window.toast('Message', { href, label })
+  let timer: number | undefined;
+  (window as any).toast = (msg: string, opts: { href?: string; label?: string } = {}) => {
+    const el = document.getElementById('toast')!;
+    el.innerHTML = '';
+    el.append(msg);
+    if (opts.href) { const a = document.createElement('a'); a.href = opts.href; a.textContent = ` ${opts.label ?? 'Voir'}`; a.style.cssText = 'color:inherit;font-weight:700;margin-left:8px;text-decoration:underline'; el.append(a); }
+    el.classList.add('is-visible');
+    clearTimeout(timer); timer = window.setTimeout(() => el.classList.remove('is-visible'), 3200);
+  };
+</script>

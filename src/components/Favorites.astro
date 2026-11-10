@@ -1,0 +1,21 @@
+<script>
+  // Favoris (localStorage « smir-favs ») : boutons [data-fav] partout, toast, compteur nav.
+  const KEY = 'smir-favs';
+  const get = (): string[] => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } };
+  const set = (v: string[]) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} };
+  function sync() {
+    const favs = get();
+    document.querySelectorAll<HTMLElement>('[data-fav]').forEach((b) => { const on = favs.includes(b.dataset.fav!); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Retirer des favoris' : 'Ajouter aux favoris'); });
+    const badge = document.querySelector('.fav-badge') as HTMLElement | null; if (badge) { badge.textContent = String(favs.length); badge.hidden = favs.length === 0; }
+    document.dispatchEvent(new CustomEvent('smir:favs', { detail: favs }));
+  }
+  document.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('[data-fav]') as HTMLElement | null; if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const ref = b.dataset.fav!; let favs = get(); const on = favs.includes(ref);
+    favs = on ? favs.filter((r) => r !== ref) : [...favs, ref]; set(favs); sync();
+    (window as any).toast?.(on ? 'Retiré de vos favoris' : 'Ajouté à vos favoris', on ? {} : { href: '/favoris/', label: 'Voir' });
+  });
+  sync();
+  (window as any).SMIR = Object.assign((window as any).SMIR ?? {}, { favs: { get, set, sync } });
+</script>

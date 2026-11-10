@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "carre-d-or",
+    "name": "Carré d'Or",
+    "tagline": "L'adresse la plus prestigieuse de la Principauté",
+    "description": "Autour du Casino et de l'Hôtel de Paris, le Carré d'Or concentre palaces, boutiques de luxe et immeubles de grand standing. C'est le cœur historique du Monte-Carlo mondain.",
+    "vibe": ["Prestige", "Boutiques de luxe", "Vie nocturne", "Conciergeries 24h/24"],
+    "pricePerSqm": { "min": 60000, "max": 120000 },
+    "walk": { "casino": 2, "gare": 10, "plage": 12 },
+    "illustration": "casino"
+  },
+  {
+    "slug": "monte-carlo",
+    "name": "Monte-Carlo",
+    "tagline": "Résidences de standing et vue sur la baie",
+    "description": "Le quartier de Monte-Carlo s'étire du boulevard des Moulins au boulevard d'Italie. Immeubles bourgeois et résidences modernes y offrent de belles hauteurs et des vues dégagées sur la Méditerranée.",
+    "vibe": ["Résidentiel chic", "Vue mer", "Commerces de proximité", "Calme"],
+    "pricePerSqm": { "min": 45000, "max": 80000 },
+    "walk": { "casino": 6, "gare": 12, "plage": 10 },
+    "illustration": "skyline"
+  },
+  {
+    "slug": "larvotto",
+    "name": "Larvotto",
+    "tagline": "Les pieds dans l'eau, face à la plage",
+    "description": "Larvotto est le quartier balnéaire de Monaco. Sa plage entièrement réaménagée, sa promenade et le Grimaldi Forum en font l'un des secteurs les plus recherchés pour une résidence principale ensoleillée.",
+    "vibe": ["Plage", "Famille", "Promenade", "Résidences récentes"],
+    "pricePerSqm": { "min": 50000, "max": 95000 },
+    "walk": { "casino": 10, "gare": 18, "plage": 1 },
+    "illustration": "beach"
+  },
+  {
+    "slug": "la-condamine",
+    "name": "La Condamine",
+    "tagline": "Le quartier vivant du Port Hercule",
+    "description": "Autour du marché et du Port Hercule, La Condamine est le quartier le plus animé de Monaco. Tracé du Grand Prix, terrasses, gare SNCF à deux pas : idéal pour une vie urbaine et pratique.",
+    "vibe": ["Port", "Marché", "Grand Prix", "Vie de quartier"],
+    "pricePerSqm": { "min": 40000, "max": 70000 },
+    "walk": { "casino": 12, "gare": 4, "plage": 18 },
+    "illustration": "port"
+  },
+  {
+    "slug": "fontvieille",
+    "name": "Fontvieille",
+    "tagline": "Le quartier d'affaires gagné sur la mer",
+    "description": "Construit sur la mer dans les années 1970-80, Fontvieille accueille le port de plaisance, le stade Louis-II, le centre commercial et de nombreux sièges sociaux. Bureaux et appartements familiaux y sont prisés.",
+    "vibe": ["Bureaux", "Famille", "Marina", "Centre commercial"],
+    "pricePerSqm": { "min": 35000, "max": 60000 },
+    "walk": { "casino": 25, "gare": 15, "plage": 20 },
+    "illustration": "marina"
+  },
+  {
+    "slug": "monaco-ville",
+    "name": "Monaco-Ville (Le Rocher)",
+    "tagline": "Le village historique sur son promontoire",
+    "description": "Ruelles médiévales, Palais Princier, Cathédrale et Musée océanographique : Le Rocher est un village préservé où les biens, rares, sont réservés en priorité aux Monégasques et résidents de longue date.",
+    "vibe": ["Historique", "Rare", "Vue panoramique", "Piéton"],
+    "pricePerSqm": { "min": 45000, "max": 75000 },
+    "walk": { "casino": 20, "gare": 12, "plage": 25 },
+    "illustration": "rocher"
+  },
+  {
+    "slug": "jardin-exotique",
+    "name": "Jardin Exotique",
+    "tagline": "Les hauteurs, la vue et le calme",
+    "description": "Sur les hauteurs ouest de la Principauté, le quartier du Jardin Exotique offre des vues spectaculaires sur le Rocher et la mer, des immeubles résidentiels et une ambiance plus tranquille.",
+    "vibe": ["Hauteurs", "Vue spectaculaire", "Calme", "Résidentiel"],
+    "pricePerSqm": { "min": 32000, "max": 55000 },
+    "walk": { "casino": 25, "gare": 15, "plage": 30 },
+    "illustration": "hills"
+  },
+  {
+    "slug": "moneghetti",
+    "name": "Moneghetti",
+    "tagline": "Le charme bourgeois à flanc de colline",
+    "description": "Entre La Condamine et le Jardin Exotique, Moneghetti aligne villas Belle Époque et immeubles bourgeois sur des rues en pente. Un quartier authentique, à quelques minutes de la gare.",
+    "vibe": ["Belle Époque", "Authentique", "Proche gare", "Rapport qualité-prix"],
+    "pricePerSqm": { "min": 30000, "max": 50000 },
+    "walk": { "casino": 18, "gare": 6, "plage": 22 },
+    "illustration": "villa"
+  },
+  {
+    "slug": "la-rousse-saint-roman",
+    "name": "La Rousse / Saint-Roman",
+    "tagline": "Tours résidentielles et Country Club",
+    "description": "À l'est de la Principauté, La Rousse / Saint-Roman regroupe de grandes tours résidentielles avec piscines et services, le Monte-Carlo Country Club et l'International School of Monaco.",
+    "vibe": ["Tours avec services", "Tennis", "Écoles internationales", "Piscines"],
+    "pricePerSqm": { "min": 38000, "max": 65000 },
+    "walk": { "casino": 15, "gare": 25, "plage": 8 },
+    "illustration": "tower"
+  }
+]

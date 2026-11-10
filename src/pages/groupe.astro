@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Illustration from '../components/Illustration.astro';
+import Icon from '../components/Icon.astro';
+import { listings } from '../data/listings';
+const timeline = [
+  { y: '1925', t: "L'Agence Lorenzi ouvre à Monaco.", d: "L'une des premières agences de la Principauté, au service des familles monégasques et des premiers résidents étrangers.", ill: 'facade' },
+  { y: '1956', t: 'Naissance de Monte Carlo Immobilier.', d: 'Les années Grace Kelly : Monaco attire une clientèle internationale, Monte Carlo Immobilier l\'accompagne.', ill: 'casino' },
+  { y: '1990', t: 'Les deux maisons fusionnent : le Groupe SMIR est né.', d: "Conseil et investissement immobilier, de Monaco à la Côte d'Azur, puis à Miami et Saint-Barthélemy.", ill: 'skyline' },
+  { y: '2026', t: 'Une nouvelle génération, les mêmes valeurs.', d: 'Recherche guidée, estimation sur rendez-vous, transparence des frais : nous modernisons sans rien céder à la discrétion.', ill: 'new-build' },
+];
+const team = [
+  { i: 'DG', n: 'Direction', r: 'Direction générale', l: 'FR · EN · IT' },
+  { i: 'TR', n: 'Transactions', r: 'Vente & achat', l: 'FR · EN · RU' },
+  { i: 'LO', n: 'Locations', r: 'Résidentiel & bureaux', l: 'FR · EN · IT' },
+  { i: 'GE', n: 'Gestion', r: 'Gérance & syndic', l: 'FR · EN' },
+];
+const intl = [
+  { n: "Côte d'Azur", c: listings.filter((l) => l.country === 'France' || l.country === 'Italie').length, h: '/acheter/?zone=cote-d-azur', ill: 'villa' },
+  { n: 'Miami', c: listings.filter((l) => l.city === 'Miami').length, h: '/acheter/?zone=international', ill: 'new-build' },
+  { n: 'Saint-Barthélemy', c: listings.filter((l) => l.country === 'Saint-Barthélemy').length, h: '/acheter/?zone=international', ill: 'beach' },
+];
+---
+<Base title="Le Groupe — trois maisons, une famille" description="Le Groupe SMIR réunit depuis 1990 l'Agence Lorenzi (1925) et Monte Carlo Immobilier (1956). Indépendants, membres de la Chambre Immobilière Monégasque.">
+  <PageHero eyebrow="Le Groupe" title="Trois maisons, une famille, un siècle à Monaco." lead="Le Groupe SMIR réunit depuis 1990 l'Agence Lorenzi, fondée en 1925, et Monte Carlo Immobilier, créée en 1956. Indépendants, membres de la Chambre Immobilière Monégasque, nous conseillons des clients privés et institutionnels, à Monaco et à l'international." illustration="facade" crumbs={[{ label: 'Le Groupe' }]} />
+  <section class="section-tight"><div class="container">
+    <ol class="timeline" role="list">
+      {timeline.map((t) => <li class="tl-item reveal"><div class="media media-4x3 tl-media"><Illustration kind={t.ill} seed={Number(t.y)} title="" /></div><p class="tl-year">{t.y}</p><h3>{t.t}</h3><p class="small muted">{t.d}</p></li>)}
+    </ol>
+  </div></section>
+  <section class="section section-alt"><div class="container">
+    <div class="section-head"><p class="eyebrow">L'équipe</p><h2>Une équipe internationale et multilingue.</h2><p class="lead">Chaque projet est suivi par un interlocuteur unique, de la première visite à la remise des clés.</p></div>
+    <ul class="card-grid team" role="list">{team.map((m) => <li class="card card-pad text-center stack"><span class="avatar">{m.i}</span><strong>{m.n}</strong><span class="small muted">{m.r}<br />{m.l}</span><a href="/contact/" class="btn btn-ghost btn-sm">Écrire</a></li>)}</ul>
+  </div></section>
+  <section class="section"><div class="container">
+    <div class="section-head"><p class="eyebrow">Engagements</p><h2>Ce qui ne change pas.</h2></div>
+    <div class="bento">
+      <div class="bento-item"><span class="icon"><Icon name="shield" /></span><h3>Indépendance</h3><p>Groupe familial, sans réseau de franchise : nous ne défendons que vos intérêts.</p></div>
+      <div class="bento-item"><span class="icon"><Icon name="seal" /></span><h3>Barème de la Chambre Immobilière</h3><p>Honoraires officiels, annoncés avant la première visite.</p></div>
+      <div class="bento-item"><span class="icon"><Icon name="users" /></span><h3>Confidentialité</h3><p>Ventes discrètes, données protégées, rien n'est publié sans votre accord.</p></div>
+    </div>
+    <h3 class="mt-7 h4">Notre réseau</h3>
+    <p class="muted">Nous coordonnons les intervenants de votre projet.</p>
+    <p class="cluster mt-4">{['Notaires', 'Banquiers', 'Fiscalistes', 'Architectes', 'Décorateurs', 'Entreprises de travaux'].map((r) => <span class="chip">{r}</span>)}</p>
+  </div></section>
+  <section class="section section-alt"><div class="container">
+    <div class="section-head"><p class="eyebrow">International</p><h2>Au-delà de la Principauté.</h2></div>
+    <div class="card-grid">{intl.map((z) => <a href={z.h} class="card card-hover intl"><div class="media media-16x9"><Illustration kind={z.ill} seed={z.n.length} title="" /></div><div class="qbody"><h3>{z.n}</h3><p class="small muted">{z.c} bien{z.c > 1 ? 's' : ''} disponible{z.c > 1 ? 's' : ''}</p></div></a>)}</div>
+  </div></section>
+  <FinalCta />
+</Base>
+<style>
+  .timeline { display: grid; gap: var(--space-6); position: relative; }
+  @media (min-width: 1024px) { .timeline { grid-template-columns: repeat(4, 1fr); gap: var(--space-5); } .tl-item:not(:last-child) .tl-year::after { content: ""; position: absolute; top: 11px; left: 18px; right: calc(-1 * var(--space-5)); block-size: 1px; background: var(--accent); opacity: .6; } }
+  .tl-item { display: grid; gap: 8px; align-content: start; }
+  .tl-media { border-radius: var(--radius-md); }
+  .tl-year { font-family: var(--font-display); font-size: var(--fs-h1); line-height: 1; color: var(--accent-text); position: relative; padding-top: 24px; }
+  .tl-year::before { content: ""; position: absolute; top: 6px; left: 0; inline-size: 12px; block-size: 12px; border-radius: 50%; background: var(--accent); }
+  .tl-item h3 { font-size: 1.25rem; }
+  .team { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .team li { justify-items: center; }
+  .avatar { inline-size: 96px; block-size: 96px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.5rem; color: #fff; background: linear-gradient(135deg, var(--ill-sea-1), var(--ill-sea-2)); }
+  .h4 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; }
+  .intl { overflow: clip; text-decoration: none; color: inherit; }
+  .qbody { padding: 16px; display: grid; gap: 4px; }
+</style>

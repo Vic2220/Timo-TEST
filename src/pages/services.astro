@@ -1,0 +1,132 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Icon from '../components/Icon.astro';
+import { formatEur, acquisitionCosts } from '../lib/format';
+import { site } from '../data/site';
+const tabs = [['achat', 'Achat'], ['vente', 'Vente'], ['location', 'Location'], ['gestion', 'Gestion'], ['evaluation', 'Évaluation'], ['residence', 'Devenir résident'], ['investir', 'Investir']];
+const c = acquisitionCosts(3000000, site.fees);
+---
+<Base title="Nos services" description="Acheter, vendre, louer, gérer, évaluer, s'installer à Monaco : un interlocuteur unique, des étapes claires et des frais annoncés dès le départ.">
+  <PageHero eyebrow="Services" title="Nos services" lead="Acheter, louer, gérer, évaluer, s'installer : un interlocuteur unique et des étapes claires." illustration="office" crumbs={[{ label: 'Services' }]} />
+  <nav class="tabs container" aria-label="Sections">{tabs.map(([id, l]) => <a href={`#${id}`} data-tab={id}>{l}</a>)}</nav>
+
+  <div class="container-narrow services">
+    <section id="achat" class="svc" aria-labelledby="t-achat">
+      <h2 id="t-achat">Acheter à Monaco</h2>
+      <p class="lead">Une procédure encadrée par notaire, des frais connus avant la première visite.</p>
+      <h3>Comment ça se passe</h3>
+      <ol class="vsteps" role="list">
+        <li><span class="n">1</span><div><strong>Définition du projet et sélection des biens</strong><p class="muted">Budget global, quartiers, critères : nous présélectionnons avec vous.</p></div></li>
+        <li><span class="n">2</span><div><strong>Visites et offre d'achat écrite</strong><p class="muted">L'offre engage les parties ; un acompte de 10 % est versé chez le notaire.</p></div></li>
+        <li><span class="n">3</span><div><strong>Compromis de vente</strong><p class="muted">Document préparatoire détaillé, signé devant notaire.</p></div></li>
+        <li><span class="n">4</span><div><strong>Acte authentique et remise des clés</strong><p class="muted">Le notaire officialise la propriété ; le solde et les frais sont réglés ce jour-là.</p></div></li>
+      </ol>
+      <h3>Ce que vous payez</h3>
+      <div class="pay card card-pad">
+        <ul role="list" class="checks"><li><Icon name="check" size={16} /> Frais d'enregistrement et de notaire : 6 % du prix</li><li><Icon name="check" size={16} /> Honoraires d'agence : 3 % + TVA 20 % (barème de la Chambre Immobilière Monégasque)</li><li><Icon name="check" size={16} /> Acompte : 10 % à l'offre d'achat</li></ul>
+        <div class="calc" data-calc>
+          <label class="field"><span class="label">Prix du bien</span><div class="affix"><input type="number" class="input" value="3000000" step="50000" min="1" inputmode="numeric" data-calc-price /><span>€</span></div></label>
+          <dl class="kv" aria-live="polite"><dt>Notaire (6 %)</dt><dd data-c="notary">{formatEur(c.notary)}</dd><dt>Honoraires TTC (3,6 %)</dt><dd data-c="agency">{formatEur(c.agency)}</dd><dt class="total">Budget total</dt><dd class="total" data-c="total">{formatEur(c.total)}</dd><dt>Acompte (10 %)</dt><dd data-c="deposit">{formatEur(c.deposit)}</dd></dl>
+        </div>
+      </div>
+      <details class="acc"><summary>L'offre d'achat est-elle engageante ?</summary><div class="acc-body"><p>Oui. À Monaco, l'offre écrite acceptée engage acheteur et vendeur. Si l'acheteur se retire, l'acompte est acquis au vendeur ; si le vendeur se dédit, il doit une indemnité équivalente.</p></div></details>
+      <details class="acc"><summary>Que doit contenir l'offre ?</summary><div class="acc-body"><p>L'identification de l'acquéreur, la description du bien, le prix, le délai de validité, les modalités de réponse, le montant des frais de notaire et des honoraires d'agence.</p></div></details>
+      <details class="acc"><summary>Un étranger peut-il acheter à Monaco ?</summary><div class="acc-body"><p>Oui, sans restriction de nationalité pour la plupart des biens. Certains secteurs (Monaco-Ville, logements domaniaux) sont réservés.</p></div></details>
+    </section>
+
+    <section id="vente" class="svc" aria-labelledby="t-vente">
+      <h2 id="t-vente">Vendre</h2>
+      <p class="lead">Une estimation argumentée, puis une commercialisation discrète auprès d'acquéreurs qualifiés.</p>
+      <ol class="vsteps" role="list">
+        <li><span class="n">1</span><div><strong>Estimation argumentée</strong><p class="muted">Ventes comparables, visite, rapport écrit.</p></div></li>
+        <li><span class="n">2</span><div><strong>Mandat et plan de commercialisation</strong><p class="muted">Mise en valeur, diffusion ciblée, confidentialité si vous le souhaitez.</p></div></li>
+        <li><span class="n">3</span><div><strong>Visites qualifiées</strong><p class="muted">Acquéreurs identifiés, financement vérifié.</p></div></li>
+        <li><span class="n">4</span><div><strong>Négociation, compromis, acte</strong><p class="muted">Jusqu'à la signature chez le notaire.</p></div></li>
+      </ol>
+      <p class="notice">Honoraires au barème de la Chambre Immobilière Monégasque, à la charge définie au mandat.</p>
+      <a href="/estimation/" class="btn btn-primary">Estimer mon bien</a>
+    </section>
+
+    <section id="location" class="svc" aria-labelledby="t-location">
+      <h2 id="t-location">Louer à Monaco</h2>
+      <p class="lead">Du premier critère à la remise des clés, puis à l'installation.</p>
+      <ol class="vsteps" role="list">
+        <li><span class="n">1</span><div><strong>Recherche ciblée</strong><p class="muted">Meublé ou non, résidence ou bureau, durée souhaitée.</p></div></li>
+        <li><span class="n">2</span><div><strong>Dossier et rédaction du bail</strong><p class="muted">Nous constituons votre dossier et rédigeons le bail à loyer.</p></div></li>
+        <li><span class="n">3</span><div><strong>État des lieux et remise des clés</strong></div></li>
+        <li><span class="n">4</span><div><strong>Démarches d'installation</strong><p class="muted">Abonnements, administration, premiers contacts bancaires.</p></div></li>
+      </ol>
+      <p class="notice">Dépôt de garantie généralement de 3 mois de loyer ; honoraires d'agence précisés avant la signature.</p>
+      <a href="/louer/" class="btn btn-secondary">Voir les biens à louer</a>
+    </section>
+
+    <section id="gestion" class="svc" aria-labelledby="t-gestion">
+      <h2 id="t-gestion">Gestion immobilière</h2>
+      <p class="lead">Compétences juridiques, techniques et comptables pour que votre patrimoine travaille sans vous mobiliser.</p>
+      <div class="grid cols-2">
+        <div class="card card-pad stack"><h3>Gestion locative</h3><ul role="list" class="checks">{['Rédaction des baux et avenants', 'Facturation et encaissement des loyers et charges', 'Indexation des loyers', 'Comptes-rendus de gestion trimestriels', 'Rappels, mises en demeure, suivi juridique', 'Gestion des sinistres et des assurances', 'Relations avec le syndic et les assemblées', 'Abonnements eau, électricité, gaz, téléphone'].map((t) => <li><Icon name="check" size={16} /> {t}</li>)}</ul></div>
+        <div class="card card-pad stack"><h3>Syndic de copropriété</h3><ul role="list" class="checks">{['Convocation et tenue des assemblées générales', 'Inspections périodiques des immeubles', 'Prise en charge immédiate des pannes', 'Devis, suivi et contrôle des travaux', 'Comptabilité générale et comptes de clôture', 'Négociation des contrats fournisseurs', 'Optimisation des coûts (énergie, nettoyage, entretien)', 'Gestion des sinistres et expertises'].map((t) => <li><Icon name="check" size={16} /> {t}</li>)}</ul></div>
+      </div>
+      <p class="notice">Honoraires de gestion : sur devis, selon le nombre de lots.</p>
+    </section>
+
+    <section id="evaluation" class="svc" aria-labelledby="t-evaluation">
+      <h2 id="t-evaluation">Évaluation & conseil</h2>
+      <p class="lead">Estimation argumentée, analyse de marché, rapport de valeur vénale pour une vente, une succession, une banque ou un arbitrage.</p>
+      <p>Une estimation fiable suppose une connaissance réactualisée en permanence des transactions et une sensibilité aux exigences d'une clientèle internationale. Notre présence sur la vente, la location, la gestion et la commercialisation d'immeubles entiers nous donne cette vision d'ensemble. Le rapport croise les critères d'analyse et détermine la valeur vénale de votre bien.</p>
+      <a href="/estimation/" class="btn btn-primary">Demander une estimation</a>
+    </section>
+
+    <section id="residence" class="svc" aria-labelledby="t-residence">
+      <h2 id="t-residence">Devenir résident</h2>
+      <p class="lead">Nous vous accompagnons tout au long du parcours administratif et vous présentons les bons interlocuteurs.</p>
+      <ol class="vsteps" role="list">
+        <li><span class="n">1</span><div><strong>Logement</strong><p class="muted">Bail d'au moins 12 mois ou acquisition d'un bien adapté à la taille du foyer.</p></div></li>
+        <li><span class="n">2</span><div><strong>Compte bancaire à Monaco</strong><p class="muted">Attestation de ressources suffisantes.</p></div></li>
+        <li><span class="n">3</span><div><strong>Dossier de carte de résident</strong><p class="muted">Pièces d'identité, extrait de casier judiciaire, justificatifs.</p></div></li>
+        <li><span class="n">4</span><div><strong>Installation</strong><p class="muted">Écoles, assurances, véhicule, télécommunications.</p></div></li>
+      </ol>
+      <p class="small muted">Démarches décrites à titre indicatif ; nous vous orientons vers les conseils compétents.</p>
+    </section>
+
+    <section id="investir" class="svc" aria-labelledby="t-investir">
+      <h2 id="t-investir">Investir</h2>
+      <p class="lead">Un marché étroit, une demande locative soutenue, une fiscalité favorable aux particuliers.</p>
+      <div class="grid cols-3">
+        <a href="/acheter/?criteres=loue" class="bento-item"><span class="icon"><Icon name="trending" /></span><h3>Rendement locatif</h3><p>Biens déjà loués, baux en cours, revenu immédiat.</p><span class="arrow">Voir</span></a>
+        <a href="/acheter/?famille=terrain-immeuble" class="bento-item"><span class="icon"><Icon name="building" /></span><h3>Immeubles et murs commerciaux</h3><p>Immeubles de rapport, murs de boutiques, droits au bail.</p><span class="arrow">Voir</span></a>
+        <a href="/acheter/?criteres=neuf" class="bento-item"><span class="icon"><Icon name="sparkles" /></span><h3>Programmes neufs</h3><p>Résidences en cours de construction, finitions au choix.</p><span class="arrow">Voir</span></a>
+      </div>
+      <p class="small muted">Les performances passées ne préjugent pas des performances futures.</p>
+    </section>
+  </div>
+  <FinalCta />
+</Base>
+<style>
+  .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); position: sticky; top: var(--nav-h); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); z-index: var(--z-sticky); }
+  .tabs a { flex: none; display: inline-flex; align-items: center; block-size: 48px; padding: 0 16px; font-weight: 600; font-size: 0.9375rem; color: var(--text-2); text-decoration: none; border-bottom: 2px solid transparent; }
+  .tabs a[aria-current="true"] { color: var(--text); border-color: var(--primary); }
+  .services { padding-block: var(--space-7) var(--section-y); display: grid; gap: var(--space-9); }
+  .svc { display: grid; gap: var(--space-5); scroll-margin-top: calc(var(--nav-h) + 64px); }
+  .svc h3 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; }
+  .vsteps { display: grid; gap: 16px; }
+  .vsteps li { display: grid; grid-template-columns: 40px 1fr; gap: 12px; }
+  .vsteps .n { font-family: var(--font-display); font-size: 1.75rem; line-height: 1; color: var(--accent-text); }
+  .vsteps p { font-size: var(--fs-small); margin-top: 2px; }
+  .pay { display: grid; gap: var(--space-4); background: var(--bg-2); border-color: transparent; }
+  .checks { display: grid; gap: 8px; font-size: var(--fs-small); } .checks li { display: flex; gap: 8px; align-items: flex-start; } .checks svg { color: var(--success); flex: none; margin-top: 3px; }
+  .calc { display: grid; gap: 12px; background: var(--surface); padding: var(--space-4); border-radius: var(--radius-md); }
+  .affix { position: relative; } .affix span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-2); font-size: var(--fs-small); } .affix .input { padding-right: 36px; }
+  .svc .btn { justify-self: start; }
+</style>
+<script>
+  import { acquisitionCosts } from '../lib/format';
+  const fmt = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const calc = document.querySelector('[data-calc]') as HTMLElement; const input = calc.querySelector('[data-calc-price]') as HTMLInputElement;
+  input.addEventListener('input', () => { const c = acquisitionCosts(Number(input.value) || 0, { notary: 0.06, agency: 0.03, vat: 0.2, deposit: 0.1 }); const set = (k: string, v: number) => { calc.querySelector(`[data-c="${k}"]`)!.textContent = fmt(v); }; set('notary', c.notary); set('agency', c.agency); set('total', c.total); set('deposit', c.deposit); });
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-tab]'));
+  const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) links.forEach((l) => l.toggleAttribute('aria-current', l.dataset.tab === e.target.id)); }); }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('.svc').forEach((s) => io.observe(s));
+</script>

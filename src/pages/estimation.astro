@@ -1,0 +1,220 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { FAMILY_LABELS } from '../data/listings';
+import districts from '../data/districts.json';
+import { site } from '../data/site';
+const families = Object.entries(FAMILY_LABELS);
+const steps = ['Votre bien', 'Ses atouts', 'Votre projet', 'Vos coordonnées'];
+const icons: Record<string, string> = { appartement: 'building', villa: 'home', 'bureau-commerce': 'briefcase', 'parking-cave': 'car', 'terrain-immeuble': 'building' };
+---
+<Base title="Estimez votre bien avec un conseiller" description="Estimation gratuite et argumentée de votre appartement, villa, bureau ou parking à Monaco. Un conseiller vous rappelle sous 24 h ouvrées. Aucun prix automatique.">
+  <section class="est">
+    <div class="container est-layout">
+      <div class="est-main">
+        <header class="stack">
+          <p class="eyebrow">Propriétaires</p>
+          <h1>Estimez votre bien avec un conseiller.</h1>
+          <p class="lead">Aucun prix automatique : nous analysons votre bien et vous rappelons sous 24 h ouvrées avec une valeur argumentée. Gratuit, sans engagement.</p>
+          <p class="trust small"><span><Icon name="seal" size={16} /> Membre de la Chambre Immobilière Monégasque</span><span><Icon name="clock" size={16} /> Depuis 1925</span><span><Icon name="shield" size={16} /> Données confidentielles</span></p>
+        </header>
+
+        <form class="est-form card" data-est-form novalidate>
+          <ol class="stepper" role="list" data-stepper>
+            {steps.map((s, i) => <li class={i === 0 ? 'is-current' : ''} aria-current={i === 0 ? 'step' : undefined}><span class="dot">{i + 1}</span><span class="lbl">{s}</span></li>)}
+          </ol>
+          <div class="as-progress" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" aria-label="Progression"></div>
+
+          <!-- Étape 1 -->
+          <fieldset data-step="1">
+            <legend>Votre bien</legend>
+            <div class="field"><span class="label">Type de bien</span>
+              <div class="opts">{families.map(([k, v]) => <label class="opt"><input type="radio" name="type" value={k} required /><Icon name={icons[k]} /><strong>{v}</strong></label>)}</div>
+              <p class="error-msg" data-err-for="type" hidden>Veuillez choisir un type de bien.</p>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><label for="e-quartier">Quartier</label><select id="e-quartier" name="quartier" class="select" required><option value="">Choisir…</option>{districts.map((d) => <option value={d.slug}>{d.name}</option>)}<option value="cote-d-azur">Côte d'Azur</option><option value="autre">Autre</option></select><p class="error-msg" data-err-for="quartier" hidden>Veuillez indiquer le quartier.</p></div>
+              <div class="field"><label for="e-adresse">Adresse ou résidence <span class="muted">(facultatif)</span></label><input id="e-adresse" name="adresse" class="input" autocomplete="street-address" /></div>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><label for="e-surface">Surface habitable</label><div class="affix"><input id="e-surface" name="surface" type="number" min="5" class="input" inputmode="numeric" required /><span>m²</span></div><span class="hint">Surface loi Carrez ou approximative.</span><p class="error-msg" data-err-for="surface" hidden>Veuillez indiquer la surface.</p></div>
+              <div class="field"><label for="e-ext">Terrasse / jardin <span class="muted">(facultatif)</span></label><div class="affix"><input id="e-ext" name="exterieur" type="number" min="0" class="input" inputmode="numeric" /><span>m²</span></div></div>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><span class="label">Pièces</span><div class="stepper-num"><button type="button" data-dec="pieces" aria-label="Moins">−</button><input name="pieces" type="number" min="0" max="20" value="3" inputmode="numeric" aria-label="Nombre de pièces" /><button type="button" data-inc="pieces" aria-label="Plus">+</button></div></div>
+              <div class="field"><span class="label">Chambres</span><div class="stepper-num"><button type="button" data-dec="chambres" aria-label="Moins">−</button><input name="chambres" type="number" min="0" max="20" value="2" inputmode="numeric" aria-label="Nombre de chambres" /><button type="button" data-inc="chambres" aria-label="Plus">+</button></div></div>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><label for="e-etage">Étage</label><select id="e-etage" name="etage" class="select"><option value="rdc">Rez-de-chaussée</option>{Array.from({ length: 20 }).map((_, i) => <option value={i + 1}>{i + 1}{i === 0 ? 'er' : 'e'}</option>)}<option value="20+">20 et plus</option></select></div>
+              <div class="field"><span class="label">Options</span><div class="cluster"><label class="chip"><input type="checkbox" name="dernier" value="1" />Dernier étage</label><label class="chip"><input type="checkbox" name="ascenseur" value="1" />Ascenseur</label></div></div>
+            </div>
+            <div class="field"><span class="label">État général</span><div class="cluster">{['Neuf / rénové', 'Bon état', 'À rafraîchir', 'À rénover'].map((s) => <label class="chip"><input type="radio" name="etat" value={s} />{s}</label>)}</div></div>
+          </fieldset>
+
+          <!-- Étape 2 -->
+          <fieldset data-step="2" hidden>
+            <legend>Ses atouts</legend>
+            <div class="two-cols">{['Vue mer', 'Vue port', 'Terrasse', 'Jardin', 'Parking', 'Cave', 'Concierge', 'Piscine', 'Immeuble récent', 'Climatisation', 'Loué actuellement'].map((a) => <label class="checkbox"><input type="checkbox" name="atouts" value={a} /><span>{a}</span></label>)}</div>
+            <div class="field" data-loyer hidden><label for="e-loyer">Loyer mensuel actuel</label><div class="affix"><input id="e-loyer" name="loyer" type="number" class="input" inputmode="numeric" /><span>€</span></div></div>
+            <div class="field"><label for="e-info">Autre information utile <span class="muted">(facultatif)</span></label><textarea id="e-info" name="info" class="textarea" maxlength="500" rows="4"></textarea><span class="hint"><span data-counter>0</span> / 500</span></div>
+            <div class="field"><span class="label">Photos ou plan <span class="muted">(facultatif)</span></span><label class="dropzone"><input type="file" name="photos" multiple accept="image/*,.pdf" /><Icon name="copy" /> <span>Ajouter jusqu'à 5 fichiers (10 Mo max)</span></label><span class="hint">Vous pourrez aussi les envoyer par WhatsApp après notre rappel.</span><ul class="small muted" data-files role="list"></ul></div>
+          </fieldset>
+
+          <!-- Étape 3 -->
+          <fieldset data-step="3" hidden>
+            <legend>Votre projet</legend>
+            <div class="field"><span class="label">Objectif</span><div class="opts">{[['vendre', 'Vendre', 'key'], ['louer', 'Louer', 'calendar'], ['gerer', 'Faire gérer', 'building'], ['valeur', 'Connaître la valeur', 'ruler']].map(([v, l, i]) => <label class="opt"><input type="radio" name="projet" value={v} required /><Icon name={i} /><strong>{l}</strong></label>)}</div><p class="error-msg" data-err-for="projet" hidden>Veuillez choisir un objectif.</p></div>
+            <div class="field"><span class="label">Délai</span><div class="cluster">{['Dès que possible', '3 mois', '6 mois', 'Plus tard'].map((d) => <label class="chip"><input type="radio" name="delai" value={d} />{d}</label>)}</div></div>
+            <div class="field"><label for="e-prix">Avez-vous déjà une idée de prix ? <span class="muted">(facultatif)</span></label><div class="affix"><input id="e-prix" name="prix" type="number" class="input" inputmode="numeric" /><span>€</span></div><span class="hint">Nous en discuterons ; ce n'est pas un engagement.</span></div>
+            <div class="field"><span class="label">Le bien est-il déjà confié à une autre agence ?</span><div class="cluster">{['Oui', 'Non', 'Je ne souhaite pas répondre'].map((d) => <label class="chip"><input type="radio" name="mandat" value={d} />{d}</label>)}</div></div>
+          </fieldset>
+
+          <!-- Étape 4 -->
+          <fieldset data-step="4" hidden>
+            <legend>Vos coordonnées</legend>
+            <div class="field"><span class="label">Civilité <span class="muted">(facultatif)</span></span><div class="cluster">{['Madame', 'Monsieur'].map((c) => <label class="chip"><input type="radio" name="civilite" value={c} />{c}</label>)}</div></div>
+            <div class="grid cols-2">
+              <div class="field"><label for="e-prenom">Prénom</label><input id="e-prenom" name="prenom" class="input" autocomplete="given-name" required /><p class="error-msg" data-err-for="prenom" hidden>Veuillez indiquer votre prénom.</p></div>
+              <div class="field"><label for="e-nom">Nom</label><input id="e-nom" name="nom" class="input" autocomplete="family-name" required /><p class="error-msg" data-err-for="nom" hidden>Veuillez indiquer votre nom.</p></div>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><label for="e-email">E-mail</label><input id="e-email" name="email" type="email" class="input" autocomplete="email" required /><p class="error-msg" data-err-for="email" hidden>Cette adresse e-mail semble incorrecte.</p></div>
+              <div class="field"><label for="e-tel">Téléphone</label><div class="tel"><select name="indicatif" class="select" aria-label="Indicatif">{['+377', '+33', '+39', '+44', '+7', '+1', '+41'].map((c) => <option>{c}</option>)}</select><input id="e-tel" name="tel" type="tel" class="input" autocomplete="tel-national" required /></div><p class="error-msg" data-err-for="tel" hidden>Veuillez indiquer un numéro de téléphone.</p></div>
+            </div>
+            <div class="grid cols-2">
+              <div class="field"><span class="label">Préférence</span><div class="cluster">{['E-mail', 'Téléphone', 'WhatsApp'].map((p, i) => <label class="chip"><input type="radio" name="pref" value={p} checked={i === 1} />{p}</label>)}</div></div>
+              <div class="field"><span class="label">Créneau</span><div class="cluster">{['Matin', 'Après-midi', 'Indifférent'].map((p, i) => <label class="chip"><input type="radio" name="creneau" value={p} checked={i === 2} />{p}</label>)}</div></div>
+            </div>
+            <div class="field"><span class="label">Langue</span><div class="cluster">{['FR', 'EN', 'RU', 'IT'].map((p, i) => <label class="chip"><input type="radio" name="langue" value={p} checked={i === 0} />{p}</label>)}</div></div>
+            <label class="checkbox"><input type="checkbox" name="consent" required /><span>J'accepte d'être contacté par Groupe SMIR au sujet de l'estimation de mon bien. Mes données sont conservées 3 ans et ne sont jamais cédées. <a href="/mentions-legales/#confidentialite">Politique de confidentialité</a>.</span></label>
+            <p class="error-msg" data-err-for="consent" hidden>Veuillez accepter la politique de confidentialité pour continuer.</p>
+            <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+          </fieldset>
+
+          <div class="est-nav">
+            <button type="button" class="btn btn-ghost" data-prev hidden>← Retour</button>
+            <button type="button" class="btn btn-primary" data-next>Continuer</button>
+            <button type="submit" class="btn btn-primary" data-submit hidden>Demander mon estimation</button>
+          </div>
+          <p class="small muted" data-foot-note hidden>Un conseiller vous rappelle sous 24 h ouvrées. Aucun prix n'est généré automatiquement.</p>
+        </form>
+
+        <div class="card confirm" data-confirm hidden>
+          <svg viewBox="0 0 120 90" width="120" aria-hidden="true"><path d="M15 85 V45 A45 45 0 0 1 105 45 V85" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="m42 50 12 12 24-26" fill="none" stroke="var(--success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h2>Merci, votre demande est bien enregistrée.</h2>
+          <dl class="kv recap" data-recap></dl>
+          <p>Prochaine étape : un conseiller vous appelle sous 24 h ouvrées (lundi – vendredi, 9 h – 18 h).</p>
+          <div class="cluster"><a href="/services/#vente" class="btn btn-ghost">Découvrir comment se déroule une vente à Monaco →</a></div>
+        </div>
+      </div>
+
+      <aside class="est-side">
+        <div class="card card-pad stack">
+          <h3>Ce que comprend notre estimation</h3>
+          <ul class="checks" role="list">{['Analyse des ventes comparables récentes', 'Visite et rapport écrit de valeur vénale', 'Stratégie de commercialisation et frais détaillés', 'Confidentialité absolue'].map((t) => <li><Icon name="check" size={16} /> {t}</li>)}</ul>
+        </div>
+        <div class="card card-pad advisor"><span class="avatar" aria-hidden="true">EC</span><div><strong>Service Évaluation & Conseil</strong><br /><span class="small muted">FR · EN · IT · RU</span></div><a href={site.phone.href} class="btn btn-ghost btn-sm">Appeler</a></div>
+        <div>
+          <details class="acc"><summary>Est-ce gratuit ?</summary><div class="acc-body"><p>Oui. L'estimation et le rappel d'un conseiller sont gratuits et sans engagement.</p></div></details>
+          <details class="acc"><summary>Dois-je signer un mandat ?</summary><div class="acc-body"><p>Non, pas pour l'estimation. Un mandat n'est proposé que si vous décidez de confier la vente ou la location.</p></div></details>
+          <details class="acc"><summary>Combien de temps prend une vente à Monaco ?</summary><div class="acc-body"><p>Entre deux et six mois en moyenne selon le bien et le prix, de l'offre écrite à l'acte authentique chez le notaire.</p></div></details>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .est { padding-block: var(--space-6) var(--section-y); }
+  .est-layout { display: grid; gap: var(--space-7); }
+  @media (min-width: 1024px) { .est-layout { grid-template-columns: minmax(0, 760px) 320px; justify-content: space-between; align-items: start; } }
+  .est-main { display: grid; gap: var(--space-6); }
+  .trust { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--text-2); } .trust span { display: inline-flex; align-items: center; gap: 6px; } .trust svg { color: var(--accent); }
+  .est-form { padding: var(--space-5); display: grid; gap: var(--space-5); border-radius: var(--radius-lg); }
+  @media (min-width: 768px) { .est-form { padding: var(--space-6); } }
+  .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
+  .stepper li { display: grid; justify-items: center; gap: 6px; text-align: center; position: relative; }
+  .stepper li::before { content: ""; position: absolute; top: 16px; left: -50%; right: 50%; block-size: 1px; background: var(--border); z-index: 0; }
+  .stepper li:first-child::before { display: none; }
+  .dot { inline-size: 32px; block-size: 32px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-small); font-weight: 700; background: var(--bg); border: 2px solid var(--border); color: var(--text-2); position: relative; z-index: 1; }
+  .stepper .lbl { font-size: var(--fs-caption); letter-spacing: 0; text-transform: none; color: var(--text-2); font-weight: 600; }
+  .stepper li.is-current .dot { border-color: var(--primary); color: var(--primary); } .stepper li.is-current .lbl { color: var(--text); }
+  .stepper li.is-done .dot { background: var(--primary-solid); border-color: var(--primary-solid); color: #fff; }
+  .as-progress { display: none; }
+  fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-5); }
+  legend { font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; margin-bottom: var(--space-3); }
+  .opts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .opt { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; min-block-size: 56px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-md); cursor: pointer; }
+  .opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .opt:has(input:checked) { border: 2px solid var(--primary); background: var(--primary-tint); padding: 9px 13px; }
+  .opt:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .opt svg { color: var(--accent); } .opt strong { font-size: var(--fs-small); }
+  .affix { position: relative; } .affix span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-2); font-size: var(--fs-small); } .affix .input { padding-right: 40px; }
+  .stepper-num { display: inline-grid; grid-template-columns: 44px 64px 44px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+  .stepper-num button { block-size: 44px; font-size: 1.25rem; color: var(--primary); } .stepper-num button:hover { background: var(--bg-2); }
+  .stepper-num input { border: 0; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; background: transparent; -moz-appearance: textfield; }
+  .stepper-num input::-webkit-outer-spin-button, .stepper-num input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .dropzone { display: flex; gap: 10px; align-items: center; justify-content: center; min-block-size: 96px; border: 1.5px dashed var(--border-strong); border-radius: var(--radius-md); padding: 16px; color: var(--text-2); font-size: var(--fs-small); cursor: pointer; position: relative; }
+  .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .tel { display: grid; grid-template-columns: 96px 1fr; gap: 8px; }
+  .est-nav { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+  @media (max-width: 479px) { .est-nav { flex-direction: column-reverse; } .est-nav .btn { inline-size: 100%; } }
+  .confirm { padding: var(--space-6); display: grid; gap: var(--space-4); justify-items: start; background: var(--success-tint); border-color: transparent; }
+  .recap { background: var(--surface); padding: var(--space-4); border-radius: var(--radius-md); inline-size: 100%; }
+  .est-side { display: grid; gap: var(--space-4); }
+  .est-side h3 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; }
+  .checks { display: grid; gap: 8px; font-size: var(--fs-small); } .checks li { display: flex; gap: 8px; align-items: center; } .checks svg { color: var(--success); flex: none; }
+  .advisor { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+  .avatar { inline-size: 48px; block-size: 48px; border-radius: 50%; background: var(--primary-tint); color: var(--primary); font-weight: 700; display: grid; place-items: center; }
+</style>
+
+<script>
+  const form = document.querySelector('[data-est-form]') as HTMLFormElement;
+  const steps = Array.from(form.querySelectorAll<HTMLFieldSetElement>('[data-step]'));
+  const stepper = Array.from(form.querySelectorAll<HTMLElement>('[data-stepper] li'));
+  const prev = form.querySelector('[data-prev]') as HTMLButtonElement, next = form.querySelector('[data-next]') as HTMLButtonElement, submit = form.querySelector('[data-submit]') as HTMLButtonElement, foot = form.querySelector('[data-foot-note]') as HTMLElement;
+  let cur = 0; const t0 = Date.now();
+  const KEY = 'smir-estimation';
+
+  function show(i: number) {
+    cur = i; steps.forEach((s, k) => { s.hidden = k !== i; });
+    stepper.forEach((li, k) => { li.classList.toggle('is-current', k === i); li.classList.toggle('is-done', k < i); li.toggleAttribute('aria-current', k === i); });
+    prev.hidden = i === 0; next.hidden = i === steps.length - 1; submit.hidden = i !== steps.length - 1; foot.hidden = i !== steps.length - 1;
+    form.scrollIntoView({ block: 'start', behavior: 'smooth' }); (steps[i].querySelector('input,select,textarea') as HTMLElement)?.focus({ preventScroll: true });
+    save();
+  }
+  function validate(i: number) {
+    const fs = steps[i]; let ok = true; let first: HTMLElement | null = null;
+    fs.querySelectorAll('[data-err-for]').forEach((e) => { (e as HTMLElement).hidden = true; });
+    const fail = (name: string) => { ok = false; const e = fs.querySelector(`[data-err-for="${name}"]`) as HTMLElement | null; if (e) e.hidden = false; first ??= fs.querySelector(`[name="${name}"]`) as HTMLElement; };
+    const v = (n: string) => (new FormData(form).get(n) ?? '') as string;
+    if (i === 0) { if (!v('type')) fail('type'); if (!v('quartier')) fail('quartier'); if (!v('surface')) fail('surface'); }
+    if (i === 2) { if (!v('projet')) fail('projet'); }
+    if (i === 3) { if (!v('prenom').trim()) fail('prenom'); if (!v('nom').trim()) fail('nom'); if (!/.+@.+\..+/.test(v('email'))) fail('email'); if (!v('tel').trim()) fail('tel'); if (!v('consent')) fail('consent'); }
+    if (!ok) (first as HTMLElement | null)?.focus();
+    return ok;
+  }
+  next.addEventListener('click', () => { if (validate(cur)) show(cur + 1); });
+  prev.addEventListener('click', () => show(cur - 1));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault(); if (!validate(cur)) return;
+    const fd = new FormData(form); if (fd.get('website') || Date.now() - t0 < 3000) return;
+    document.dispatchEvent(new CustomEvent('smir:lead', { detail: { source: 'estimation', data: Object.fromEntries(fd) } }));
+    const recap = document.querySelector('[data-recap]')!; const label = (n: string) => (form.querySelector(`[name="${n}"]:checked`)?.closest('label')?.textContent ?? String(fd.get(n) ?? '')).trim();
+    recap.innerHTML = [['Type', label('type')], ['Quartier', (form.querySelector('[name=quartier]') as HTMLSelectElement).selectedOptions[0]?.text], ['Surface', `${fd.get('surface')} m²`], ['Objectif', label('projet')]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+    form.hidden = true; (document.querySelector('[data-confirm]') as HTMLElement).hidden = false; try { sessionStorage.removeItem(KEY); } catch {}
+    document.querySelector('[data-confirm] h2')?.scrollIntoView({ block: 'center' });
+  });
+  form.querySelectorAll<HTMLButtonElement>('[data-inc],[data-dec]').forEach((b) => b.addEventListener('click', () => { const n = b.dataset.inc ?? b.dataset.dec!; const i = form.querySelector(`[name="${n}"]`) as HTMLInputElement; i.value = String(Math.max(0, Number(i.value) + (b.dataset.inc ? 1 : -1))); }));
+  const info = form.querySelector('[name=info]') as HTMLTextAreaElement; info.addEventListener('input', () => { (form.querySelector('[data-counter]') as HTMLElement).textContent = String(info.value.length); });
+  form.querySelector('input[value="Loué actuellement"]')?.addEventListener('change', (e) => { (form.querySelector('[data-loyer]') as HTMLElement).hidden = !(e.target as HTMLInputElement).checked; });
+  form.querySelector('[name=photos]')?.addEventListener('change', (e) => { const files = Array.from((e.target as HTMLInputElement).files ?? []).slice(0, 5); (form.querySelector('[data-files]') as HTMLElement).innerHTML = files.map((f) => `<li>${f.name} (${Math.round(f.size / 1024)} Ko)</li>`).join(''); });
+  // Pré-remplissage (assistant / accueil) + sauvegarde
+  function save() { try { const fd = new FormData(form); const o: Record<string, string> = {}; fd.forEach((v, k) => { if (typeof v === 'string' && k !== 'website') o[k] = v; }); sessionStorage.setItem(KEY, JSON.stringify({ o, cur })); } catch {} }
+  function setVal(n: string, v: string | null) { if (!v) return; const el = form.querySelector(`[name="${n}"]`) as HTMLInputElement | HTMLSelectElement | null; if (!el) return; if (el.type === 'radio' || el.type === 'checkbox') { const r = form.querySelector(`[name="${n}"][value="${v}"]`) as HTMLInputElement | null; if (r) r.checked = true; } else el.value = v; }
+  const p = new URLSearchParams(location.search);
+  setVal('type', p.get('type')); setVal('quartier', p.get('quartier')); setVal('surface', p.get('surface')); setVal('projet', p.get('projet') === 'vendre' || p.get('projet') === 'louer' || p.get('projet') === 'gerer' || p.get('projet') === 'valeur' ? p.get('projet') : null);
+  try { const s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (s && !p.toString()) { Object.entries(s.o).forEach(([k, v]) => setVal(k, v as string)); if (s.cur) { show(Math.min(s.cur, 3)); (window as any).toast?.('Nous avons repris votre demande là où vous l\'aviez laissée.'); } } } catch {}
+  form.addEventListener('input', save);
+</script>
